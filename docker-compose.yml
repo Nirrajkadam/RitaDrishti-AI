@@ -1,0 +1,72 @@
+version: '3.8'
+
+services:
+  # 1. PostgreSQL 18 Relational Database
+  postgres:
+    image: postgres:16-alpine
+    container_name: sentinelx_postgres
+    restart: always
+    environment:
+      POSTGRES_USER: sentinelx
+      POSTGRES_PASSWORD: sentinelx_secret
+      POSTGRES_DB: sentinelx_trust_db
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./database/schema.sql:/docker-entrypoint-initdb.d/1_schema.sql
+      - ./database/seed_data.sql:/docker-entrypoint-initdb.d/2_seed.sql
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U sentinelx -d sentinelx_trust_db"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  # 2. Qdrant Vector Database
+  qdrant:
+    image: qdrant/qdrant:v1.8.0
+    container_name: sentinelx_qdrant
+    restart: always
+    ports:
+      - "6333:6333"
+    volumes:
+      - qdrant_data:/qdrant/storage
+
+  # 3. FastAPI Async Backend API Gateway
+  backend:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: sentinelx_backend
+    restart: always
+    ports:
+      - "8000:8000"
+    environment:
+      DATABASE_URL: postgresql+asyncpg://sentinelx:sentinelx_secret@postgres:5432/sentinelx_trust_db
+      QDRANT_HOST: qdrant
+      QDRANT_PORT: 6333
+      OLLAMA_BASE_URL: http://host.docker.internal:11434
+    depends_on:
+      postgres:
+        condition: service_healthy
+      qdrant:
+        condition: service_started
+
+  # 4. Streamlit Interactive Multi-Page Dashboard
+  dashboard:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: sentinelx_dashboard
+    restart: always
+    command: ["streamlit", "run", "/app/dashboard/app.py", "--server.port=8501", "--server.address=0.0.0.0"]
+    ports:
+      - "8501:8501"
+    volumes:
+      - .:/app
+    depends_on:
+      - backend
+
+volumes:
+  postgres_data:
+  qdrant_data:
