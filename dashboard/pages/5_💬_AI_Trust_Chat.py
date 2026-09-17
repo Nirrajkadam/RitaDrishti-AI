@@ -1,7 +1,14 @@
+import sys
+import os
+
+backend_path = os.path.abspath(os.path.join(os.path.dirname(__file__), "../../backend"))
+if backend_path not in sys.path:
+    sys.path.insert(0, backend_path)
+
 import streamlit as st
 from app.rag.rag_engine import RAGEngine
 
-st.set_page_config(page_title="AI Trust Chat — RitaDrishti", page_icon="💬", layout="wide")
+st.set_page_config(page_title="AI Trust Chat — RitaDrishti-AI", page_icon="💬", layout="wide")
 
 st.title("💬 RAG-Powered AI Trust Copilot")
 st.markdown("Ask questions about any company's reviews, complaints, news, and risk posture. Powered by **SentenceTransformers + Qdrant/FAISS + Ollama (Llama 3)**.")
