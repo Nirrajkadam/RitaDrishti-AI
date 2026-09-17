@@ -155,7 +155,28 @@ RitaDrishti-AI compiles PyTorch Transformer models into ONNX format targeting Mi
 
 ---
 
+## Enterprise Roadmap (Phase 2: Neo4j Knowledge Graph Integration)
+
+To elevate RitaDrishti-AI from an MVP to a Fortune-500 Enterprise Trust Intelligence Platform, **Phase 2** introduces a **Neo4j Graph Database**:
+
+### Graph Schema Topology
+```text
+(Company:Company {domain}) -[:HAS_REVIEW]-> (r:Review {rating, sentiment})
+(Company) -[:FLAGS_COMPLAINT]-> (c:Complaint {severity, status})
+(Company) -[:MENTIONED_IN]-> (n:NewsArticle {headline})
+(c:Complaint) -[:CORRELATED_WITH]-> (n:NewsArticle)
+(r:Review) -[:POSTED_BY]-> (u:ReviewerNetwork {spam_score})
+```
+
+### Key Graph Analytics Capabilities
+- **Cross-Entity Triangulation**: Graph Cypher traversal queries matching consumer complaints directly to correlated news articles and review spikes.
+- **Syndicate Spam Ring Detection**: Graph centrality and Louvain community detection algorithms identifying coordinated fake review networks across multiple brand domains.
+- **Connector Interface**: Built-in Cypher DML query builder (`backend/app/graph/knowledge_graph.py`).
+
+---
+
 ## Author & License
+
 
 Developed by **Niraj Kadam** (Computer Science Graduate & CDAC PG-DBDA Scholar).
 
