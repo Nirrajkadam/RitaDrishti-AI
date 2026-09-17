@@ -1,15 +1,15 @@
 import sys
 import os
 
-backend_path = os.path.abspath(os.path.join(os.path.dirname(__file__), "../../backend"))
-if backend_path not in sys.path:
-    sys.path.insert(0, backend_path)
+project_root = os.path.abspath(os.path.join(os.path.dirname(__file__), "../.."))
+if project_root not in sys.path:
+    sys.path.insert(0, project_root)
 
 import streamlit as st
 import pandas as pd
 import plotly.express as px
-from app.ml.sentiment_engine import SentimentEngine
-from app.ml.fake_review_engine import FakeReviewEngine
+from backend.app.ml.sentiment_engine import SentimentEngine
+from backend.app.ml.fake_review_engine import FakeReviewEngine
 
 st.set_page_config(page_title="Company Analysis — RitaDrishti-AI", page_icon="🏢", layout="wide")
 

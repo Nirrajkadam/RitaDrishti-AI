@@ -6,15 +6,16 @@ Inspired by Palantir's high-tech, minimalist, enterprise AI design language.
 import sys
 import os
 
-backend_path = os.path.abspath(os.path.join(os.path.dirname(__file__), "../backend"))
-if backend_path not in sys.path:
-    sys.path.insert(0, backend_path)
+# Insert root project directory into sys.path to avoid name collision with dashboard/app.py
+project_root = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
+if project_root not in sys.path:
+    sys.path.insert(0, project_root)
 
 import streamlit as st
 import pandas as pd
 import plotly.express as px
-from app.ml.nl_query_engine import NaturalLanguageQueryEngine
-from app.ml.correlation_engine import CorrelationEngine
+from backend.app.ml.nl_query_engine import NaturalLanguageQueryEngine
+from backend.app.ml.correlation_engine import CorrelationEngine
 
 # Page Config
 st.set_page_config(

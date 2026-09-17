@@ -1,12 +1,12 @@
 import sys
 import os
 
-backend_path = os.path.abspath(os.path.join(os.path.dirname(__file__), "../../backend"))
-if backend_path not in sys.path:
-    sys.path.insert(0, backend_path)
+project_root = os.path.abspath(os.path.join(os.path.dirname(__file__), "../.."))
+if project_root not in sys.path:
+    sys.path.insert(0, project_root)
 
 import streamlit as st
-from app.agents.crew_manager import CrewManager
+from backend.app.agents.crew_manager import CrewManager
 
 st.set_page_config(page_title="Executive Reports — RitaDrishti-AI", page_icon="📄", layout="wide")
 
