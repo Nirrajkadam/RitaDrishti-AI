@@ -5,8 +5,8 @@ RitaDrishti-AI — FastAPI Main Server Entrypoint
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
-from app.config import settings
-from app.api.v1.endpoints import companies, reviews, trust, risk, chat, reports, alerts, search
+from backend.app.config import settings
+from backend.app.api.v1.endpoints import companies, reviews, trust, risk, chat, reports, alerts, search
 
 app = FastAPI(
     title=settings.APP_NAME,
@@ -48,4 +48,5 @@ async def root():
 
 if __name__ == "__main__":
     import uvicorn
-    uvicorn.run("app.main:app", host="0.0.0.0", port=8000, reload=True)
+    uvicorn.run("backend.app.main:app", host="0.0.0.0", port=8000, reload=True)
+

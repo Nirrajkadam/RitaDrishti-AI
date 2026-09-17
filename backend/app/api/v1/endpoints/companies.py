@@ -5,7 +5,7 @@ RitaDrishti-AI — Companies REST API Endpoints
 from fastapi import APIRouter, HTTPException, Query
 from typing import List
 from uuid import uuid4, UUID
-from app.db.schemas import CompanyCreate, CompanyResponse
+from backend.app.db.schemas import CompanyCreate, CompanyResponse
 
 router = APIRouter()
 

@@ -3,10 +3,10 @@ RitaDrishti-AI — Reviews API & Real-Time ML Analysis Endpoint
 """
 
 from fastapi import APIRouter, HTTPException
-from app.db.schemas import ReviewCreate
-from app.ml.sentiment_engine import SentimentEngine
-from app.ml.fake_review_engine import FakeReviewEngine
-from app.ingestion.etl_pipeline import DataCleaningPipeline
+from backend.app.db.schemas import ReviewCreate
+from backend.app.ml.sentiment_engine import SentimentEngine
+from backend.app.ml.fake_review_engine import FakeReviewEngine
+from backend.app.ingestion.etl_pipeline import DataCleaningPipeline
 
 router = APIRouter()
 

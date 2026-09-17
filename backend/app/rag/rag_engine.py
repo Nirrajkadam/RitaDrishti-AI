@@ -10,8 +10,8 @@ Architecture:
 """
 
 from typing import List, Dict, Any
-from app.rag.embeddings import EmbeddingEngine
-from app.rag.vector_store import VectorStoreManager
+from backend.app.rag.embeddings import EmbeddingEngine
+from backend.app.rag.vector_store import VectorStoreManager
 
 
 class RAGEngine:

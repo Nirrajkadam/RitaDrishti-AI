@@ -4,7 +4,7 @@ RitaDrishti-AI — Global & Natural Language Search API Endpoint
 
 from fastapi import APIRouter, Query
 from typing import List, Dict, Any, Optional
-from app.ml.nl_query_engine import NaturalLanguageQueryEngine
+from backend.app.ml.nl_query_engine import NaturalLanguageQueryEngine
 
 router = APIRouter()
 nl_engine = NaturalLanguageQueryEngine()

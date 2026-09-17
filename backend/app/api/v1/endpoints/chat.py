@@ -3,8 +3,8 @@ RitaDrishti-AI — RAG Copilot Chat API Endpoint
 """
 
 from fastapi import APIRouter
-from app.db.schemas import ChatQueryRequest, ChatQueryResponse
-from app.rag.rag_engine import RAGEngine
+from backend.app.db.schemas import ChatQueryRequest, ChatQueryResponse
+from backend.app.rag.rag_engine import RAGEngine
 
 router = APIRouter()
 rag_engine = RAGEngine()

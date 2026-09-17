@@ -3,8 +3,8 @@ RitaDrishti-AI — Multi-Agent Executive Reports API Endpoint
 """
 
 from fastapi import APIRouter
-from app.db.schemas import AuditReportRequest, AuditReportResponse
-from app.agents.crew_manager import CrewManager
+from backend.app.db.schemas import AuditReportRequest, AuditReportResponse
+from backend.app.agents.crew_manager import CrewManager
 
 router = APIRouter()
 crew_manager = CrewManager()

@@ -4,8 +4,8 @@ RitaDrishti-AI — Trust Index API Endpoint
 
 from fastapi import APIRouter, HTTPException
 from uuid import UUID
-from app.db.schemas import TrustScoreResponse
-from app.ml.trust_score_engine import TrustScoreEngine
+from backend.app.db.schemas import TrustScoreResponse
+from backend.app.ml.trust_score_engine import TrustScoreEngine
 
 router = APIRouter()
 trust_engine = TrustScoreEngine()

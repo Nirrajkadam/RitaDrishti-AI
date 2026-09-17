@@ -4,8 +4,8 @@ RitaDrishti-AI — Risk & Fraud Intelligence API Endpoint
 
 from fastapi import APIRouter
 from uuid import UUID
-from app.db.schemas import RiskScoreResponse
-from app.ml.risk_prediction import RiskPredictionEngine
+from backend.app.db.schemas import RiskScoreResponse
+from backend.app.ml.risk_prediction import RiskPredictionEngine
 
 router = APIRouter()
 risk_engine = RiskPredictionEngine()
