@@ -1,7 +1,7 @@
 import streamlit as st
 from app.agents.crew_manager import CrewManager
 
-st.set_page_config(page_title="Executive Reports — SentinelX", page_icon="📄", layout="wide")
+st.set_page_config(page_title="Executive Reports — RitaDrishti", page_icon="📄", layout="wide")
 
 st.title("📄 Multi-Agent Executive Audit Reports")
 

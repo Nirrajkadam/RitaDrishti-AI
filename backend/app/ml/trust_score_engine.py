@@ -1,5 +1,5 @@
 """
-SentinelX Trust AI — Trust Score Engine
+RitaDrishti-AI — Trust Score Engine
 Mathematical Weighting Algorithm for Corporate Trust Index Calculation.
 
 Formula:

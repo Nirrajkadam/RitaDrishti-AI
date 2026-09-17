@@ -1,17 +1,17 @@
 """
-SentinelX Trust AI — Application Settings & Configuration
+RitaDrishti-AI — Application Settings & Configuration
 """
 
 from pydantic_settings import BaseSettings
 
 
 class Settings(BaseSettings):
-    APP_NAME: str = "SentinelX Trust AI"
+    APP_NAME: str = "RitaDrishti-AI"
     APP_ENV: str = "development"
     DEBUG: bool = True
     
     # Database Settings
-    DATABASE_URL: str = "postgresql+asyncpg://sentinelx:sentinelx_secret@localhost:5432/sentinelx_trust_db"
+    DATABASE_URL: str = "postgresql+asyncpg://RitaDrishti:RitaDrishti_secret@localhost:5432/RitaDrishti_trust_db"
     
     # Vector DB
     QDRANT_HOST: str = "localhost"
@@ -22,7 +22,7 @@ class Settings(BaseSettings):
     OLLAMA_MODEL: str = "llama3:8b"
     
     # Security
-    JWT_SECRET: str = "super_secret_jwt_key_sentinelx_2026"
+    JWT_SECRET: str = "super_secret_jwt_key_RitaDrishti_2026"
     JWT_ALGORITHM: str = "HS256"
 
     class Config:

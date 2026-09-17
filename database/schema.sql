@@ -1,4 +1,4 @@
--- SentinelX Trust AI — Enterprise PostgreSQL Database Schema
+-- RitaDrishti-AI — Enterprise PostgreSQL Database Schema
 -- Version: 1.0.0
 -- Database: PostgreSQL 18+
 

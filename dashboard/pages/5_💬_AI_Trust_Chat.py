@@ -1,14 +1,14 @@
 import streamlit as st
 from app.rag.rag_engine import RAGEngine
 
-st.set_page_config(page_title="AI Trust Chat — SentinelX", page_icon="💬", layout="wide")
+st.set_page_config(page_title="AI Trust Chat — RitaDrishti", page_icon="💬", layout="wide")
 
 st.title("💬 RAG-Powered AI Trust Copilot")
 st.markdown("Ask questions about any company's reviews, complaints, news, and risk posture. Powered by **SentenceTransformers + Qdrant/FAISS + Ollama (Llama 3)**.")
 
 if "messages" not in st.session_state:
     st.session_state["messages"] = [
-        {"role": "assistant", "content": "Hello! I am SentinelX AI Trust Copilot. How can I assist with your corporate risk and trust audit today?"}
+        {"role": "assistant", "content": "Hello! I am RitaDrishti AI Trust Copilot. How can I assist with your corporate risk and trust audit today?"}
     ]
 
 for msg in st.session_state["messages"]:

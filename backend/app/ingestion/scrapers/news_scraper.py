@@ -1,5 +1,5 @@
 """
-SentinelX Trust AI — News & Public Media Scraper
+RitaDrishti-AI — News & Public Media Scraper
 Fetches news articles, press releases, and public OSINT media feeds.
 """
 

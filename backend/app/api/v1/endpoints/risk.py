@@ -1,5 +1,5 @@
 """
-SentinelX Trust AI — Risk & Fraud Intelligence API Endpoint
+RitaDrishti-AI — Risk & Fraud Intelligence API Endpoint
 """
 
 from fastapi import APIRouter

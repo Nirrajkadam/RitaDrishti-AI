@@ -1,10 +1,10 @@
 """
-SentinelX Trust AI — Qualcomm Snapdragon NPU Accelerator Wrapper
+RitaDrishti-AI — Qualcomm Snapdragon NPU Accelerator Wrapper
 
 Theory & Snapdragon Integration:
 Qualcomm Snapdragon X Elite/Plus processors feature Hexagon NPUs capable of ~45 TOPS (Trillion Operations Per Second).
 By exporting PyTorch transformer models (DistilBERT, MiniLM embeddings) to ONNX format and configuring ONNX Runtime
-with DirectML (`DmlExecutionProvider`) or Qualcomm QNN (`QNNExecutionProvider`), SentinelX executes ML inference
+with DirectML (`DmlExecutionProvider`) or Qualcomm QNN (`QNNExecutionProvider`), RitaDrishti executes ML inference
 directly on Snapdragon NPU hardware with up to 4x faster throughput and 70% lower energy consumption compared to CPU.
 """
 

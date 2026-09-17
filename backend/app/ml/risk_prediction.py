@@ -1,5 +1,5 @@
 """
-SentinelX Trust AI — Risk Prediction Engine
+RitaDrishti-AI — Risk Prediction Engine
 Calculates multi-dimensional Risk Metrics: Fraud Risk, Regulatory Risk, Reputational Risk, and Overall Risk Score.
 Employs anomaly detection principles to flag sudden spikes in negative complaints or fake reviews.
 """

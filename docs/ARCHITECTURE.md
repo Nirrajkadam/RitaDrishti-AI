@@ -1,7 +1,7 @@
-# SentinelX Trust AI — Enterprise Architecture & System Design Specification
+# RitaDrishti-AI — Enterprise Architecture & System Design Specification
 
 ## Overview
-**SentinelX Trust AI** is an enterprise-grade, AI-powered Trust Intelligence and Risk Intelligence Platform. It aggregates unstructured public reviews, consumer complaints, news articles, and OSINT signals across digital channels, converts them into high-dimensional embeddings and structured features, and applies ML classification, sentiment analysis, fake review detection, multi-agent AI auditing (CrewAI), and Retrieval-Augmented Generation (RAG) to produce real-time Trust Scores and Risk Indexes.
+**RitaDrishti-AI** is an enterprise-grade, AI-powered Trust Intelligence and Risk Intelligence Platform. It aggregates unstructured public reviews, consumer complaints, news articles, and OSINT signals across digital channels, converts them into high-dimensional embeddings and structured features, and applies ML classification, sentiment analysis, fake review detection, multi-agent AI auditing (CrewAI), and Retrieval-Augmented Generation (RAG) to produce real-time Trust Scores and Risk Indexes.
 
 ---
 
@@ -152,7 +152,7 @@ sequenceDiagram
 
 ```text
 +-----------------------------------------------------------------------------------+
-|                            SENTINELX TRUST AI PLATFORM                            |
+|                            RitaDrishti-AI PLATFORM                            |
 +-----------------------------------------------------------------------------------+
 |                                                                                   |
 |   +-----------------------+     +-----------------------+     +---------------+   |

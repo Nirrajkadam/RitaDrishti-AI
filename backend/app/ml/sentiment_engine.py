@@ -1,5 +1,5 @@
 """
-SentinelX Trust AI — Sentiment Analysis Engine
+RitaDrishti-AI — Sentiment Analysis Engine
 Theory: Combines Lexicon-Based VADER sentiment with Transformer-based (DistilBERT) deep contextual embeddings.
 Feature Engineering: Text normalization, emoji decoding, negation handling, intensity boosting.
 Model Selection: VADER (fast low-latency fallback) + DistilBERT (fine-grained contextual sentiment).

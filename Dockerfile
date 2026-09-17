@@ -1,4 +1,4 @@
-# SentinelX Trust AI — FastAPI Backend Dockerfile
+# RitaDrishti-AI — FastAPI Backend Dockerfile
 FROM python:3.11-slim
 
 WORKDIR /app

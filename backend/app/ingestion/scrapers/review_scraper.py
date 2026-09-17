@@ -1,5 +1,5 @@
 """
-SentinelX Trust AI — Scrapy Review Spider
+RitaDrishti-AI — Scrapy Review Spider
 Fetches unstructured reviews, ratings, author names, and metadata from public web sources.
 """
 

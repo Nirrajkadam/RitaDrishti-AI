@@ -1,5 +1,5 @@
 """
-SentinelX Trust AI — Reviews API & Real-Time ML Analysis Endpoint
+RitaDrishti-AI — Reviews API & Real-Time ML Analysis Endpoint
 """
 
 from fastapi import APIRouter, HTTPException

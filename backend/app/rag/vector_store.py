@@ -1,5 +1,5 @@
 """
-SentinelX Trust AI — FAISS & Qdrant Vector Store Manager
+RitaDrishti-AI — FAISS & Qdrant Vector Store Manager
 Indexes text chunks and performs Cosine Similarity Vector Searches.
 """
 

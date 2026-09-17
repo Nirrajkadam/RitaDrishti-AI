@@ -4,7 +4,7 @@ import plotly.express as px
 from app.ml.sentiment_engine import SentimentEngine
 from app.ml.fake_review_engine import FakeReviewEngine
 
-st.set_page_config(page_title="Company Analysis — SentinelX", page_icon="🏢", layout="wide")
+st.set_page_config(page_title="Company Analysis — RitaDrishti", page_icon="🏢", layout="wide")
 
 st.title("🏢 Company Sentiment & Signal Analysis")
 

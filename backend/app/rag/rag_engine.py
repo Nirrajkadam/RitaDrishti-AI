@@ -1,5 +1,5 @@
 """
-SentinelX Trust AI — RAG (Retrieval-Augmented Generation) Engine
+RitaDrishti-AI — RAG (Retrieval-Augmented Generation) Engine
 
 Architecture:
 1. Chunking: Text splitter with 512 character windows and 64 character overlap.
@@ -101,7 +101,7 @@ class RAGEngine:
             context_str = "No specific retrieved company context found in local vector database."
 
         # Step 5: System Prompt Engineering
-        system_prompt = f"""You are SentinelX AI Trust Copilot, an elite corporate risk auditor and cybersecurity research intelligence assistant.
+        system_prompt = f"""You are RitaDrishti AI Trust Copilot, an elite corporate risk auditor and cybersecurity research intelligence assistant.
 Answer the user query based ONLY on the verified evidence provided in the context below.
 If the context does not contain enough information, state clearly what is available and offer a analytical summary based on trust intelligence principles.
 
@@ -124,7 +124,7 @@ EXECUTIVE ANSWER:"""
             answer = response["message"]["content"]
         except Exception as e:
             # Fallback deterministic structured response if Ollama service is offline
-            answer = f"**SentinelX Trust Intelligence Briefing**:\n\nBased on retrieved records ({', '.join(set(sources)) if sources else 'Database Cache'}):\n"
+            answer = f"**RitaDrishti Trust Intelligence Briefing**:\n\nBased on retrieved records ({', '.join(set(sources)) if sources else 'Database Cache'}):\n"
             for doc in retrieved_docs[:3]:
                 answer += f"- **{doc['type']}**: {doc['text'][:180]}...\n"
             answer += "\n*Note: Local Ollama service was unavailable; showing vector-retrieved context directly.*"

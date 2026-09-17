@@ -1,5 +1,5 @@
 """
-SentinelX Trust AI — Multi-Agent Executive Reports API Endpoint
+RitaDrishti-AI — Multi-Agent Executive Reports API Endpoint
 """
 
 from fastapi import APIRouter

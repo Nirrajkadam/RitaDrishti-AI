@@ -1,6 +1,6 @@
 import streamlit as st
 
-st.set_page_config(page_title="Admin Panel — SentinelX", page_icon="⚙️", layout="wide")
+st.set_page_config(page_title="Admin Panel — RitaDrishti", page_icon="⚙️", layout="wide")
 
 st.title("⚙️ System Health & Scraper Pipeline Controls")
 

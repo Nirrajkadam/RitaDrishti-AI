@@ -1,5 +1,5 @@
 """
-SentinelX Trust AI — Playwright Dynamic Complaint Scraper
+RitaDrishti-AI — Playwright Dynamic Complaint Scraper
 Handles JavaScript-rendered dynamic complaint portals and consumer forums.
 """
 

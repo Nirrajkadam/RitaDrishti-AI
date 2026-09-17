@@ -1,5 +1,5 @@
 """
-SentinelX Trust AI — Ingestion ETL & Cleaning Pipeline
+RitaDrishti-AI — Ingestion ETL & Cleaning Pipeline
 Cleans raw text, strips HTML tags, redacts PII (emails, phone numbers, cards), deduplicates text, and normalizes fields.
 """
 

@@ -1,5 +1,5 @@
 """
-SentinelX Trust AI — Pydantic Validation Schemas
+RitaDrishti-AI — Pydantic Validation Schemas
 """
 
 from typing import Optional, List, Dict, Any

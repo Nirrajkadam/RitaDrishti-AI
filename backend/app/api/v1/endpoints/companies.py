@@ -1,5 +1,5 @@
 """
-SentinelX Trust AI — Companies REST API Endpoints
+RitaDrishti-AI — Companies REST API Endpoints
 """
 
 from fastapi import APIRouter, HTTPException, Query
@@ -35,7 +35,7 @@ MOCK_COMPANIES = [
 
 @router.get("/", response_model=List[CompanyResponse])
 async def list_companies(limit: int = Query(10, ge=1, le=100)):
-    """Retrieve all verified companies audited by SentinelX Trust AI."""
+    """Retrieve all verified companies audited by RitaDrishti-AI."""
     return MOCK_COMPANIES[:limit]
 
 @router.get("/{company_id}", response_model=CompanyResponse)

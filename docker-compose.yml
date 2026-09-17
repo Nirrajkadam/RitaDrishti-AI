@@ -4,12 +4,12 @@ services:
   # 1. PostgreSQL 18 Relational Database
   postgres:
     image: postgres:16-alpine
-    container_name: sentinelx_postgres
+    container_name: RitaDrishti_postgres
     restart: always
     environment:
-      POSTGRES_USER: sentinelx
-      POSTGRES_PASSWORD: sentinelx_secret
-      POSTGRES_DB: sentinelx_trust_db
+      POSTGRES_USER: RitaDrishti
+      POSTGRES_PASSWORD: RitaDrishti_secret
+      POSTGRES_DB: RitaDrishti_trust_db
     ports:
       - "5432:5432"
     volumes:
@@ -17,7 +17,7 @@ services:
       - ./database/schema.sql:/docker-entrypoint-initdb.d/1_schema.sql
       - ./database/seed_data.sql:/docker-entrypoint-initdb.d/2_seed.sql
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U sentinelx -d sentinelx_trust_db"]
+      test: ["CMD-SHELL", "pg_isready -U RitaDrishti -d RitaDrishti_trust_db"]
       interval: 5s
       timeout: 5s
       retries: 5
@@ -25,7 +25,7 @@ services:
   # 2. Qdrant Vector Database
   qdrant:
     image: qdrant/qdrant:v1.8.0
-    container_name: sentinelx_qdrant
+    container_name: RitaDrishti_qdrant
     restart: always
     ports:
       - "6333:6333"
@@ -37,12 +37,12 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
-    container_name: sentinelx_backend
+    container_name: RitaDrishti_backend
     restart: always
     ports:
       - "8000:8000"
     environment:
-      DATABASE_URL: postgresql+asyncpg://sentinelx:sentinelx_secret@postgres:5432/sentinelx_trust_db
+      DATABASE_URL: postgresql+asyncpg://RitaDrishti:RitaDrishti_secret@postgres:5432/RitaDrishti_trust_db
       QDRANT_HOST: qdrant
       QDRANT_PORT: 6333
       OLLAMA_BASE_URL: http://host.docker.internal:11434
@@ -57,7 +57,7 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
-    container_name: sentinelx_dashboard
+    container_name: RitaDrishti_dashboard
     restart: always
     command: ["streamlit", "run", "/app/dashboard/app.py", "--server.port=8501", "--server.address=0.0.0.0"]
     ports:

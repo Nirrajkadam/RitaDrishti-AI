@@ -1,7 +1,7 @@
-# SentinelX Trust AI — Qualcomm Snapdragon AI Hub & NPU Optimization Blueprint
+# RitaDrishti-AI — Qualcomm Snapdragon AI Hub & NPU Optimization Blueprint
 
 ## 1. Overview
-SentinelX Trust AI is optimized to execute locally on **Qualcomm Snapdragon X Elite and X Plus Copilot+ PCs**. By leveraging the integrated **Hexagon NPU (~45 TOPS)**, SentinelX achieves zero-latency local ML scoring, real-time fake review detection, and local vector embeddings without sending sensitive enterprise data to third-party cloud APIs.
+RitaDrishti-AI is optimized to execute locally on **Qualcomm Snapdragon X Elite and X Plus Copilot+ PCs**. By leveraging the integrated **Hexagon NPU (~45 TOPS)**, RitaDrishti achieves zero-latency local ML scoring, real-time fake review detection, and local vector embeddings without sending sensitive enterprise data to third-party cloud APIs.
 
 ---
 

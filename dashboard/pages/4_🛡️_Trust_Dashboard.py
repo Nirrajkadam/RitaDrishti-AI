@@ -2,7 +2,7 @@ import streamlit as st
 import pandas as pd
 import plotly.graph_objects as go
 
-st.set_page_config(page_title="Trust Dashboard — SentinelX", page_icon="🛡️", layout="wide")
+st.set_page_config(page_title="Trust Dashboard — RitaDrishti", page_icon="🛡️", layout="wide")
 
 st.title("🛡️ Trust Index Benchmarks & Transparency Badges")
 

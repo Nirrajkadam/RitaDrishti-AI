@@ -1,5 +1,5 @@
 """
-SentinelX Trust AI — FastAPI Main Server Entrypoint
+RitaDrishti-AI — FastAPI Main Server Entrypoint
 """
 
 from fastapi import FastAPI

@@ -1,5 +1,5 @@
 """
-SentinelX Trust AI — RAG Copilot Chat API Endpoint
+RitaDrishti-AI — RAG Copilot Chat API Endpoint
 """
 
 from fastapi import APIRouter

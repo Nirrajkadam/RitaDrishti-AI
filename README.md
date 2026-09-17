@@ -1,4 +1,4 @@
-# 🛡️ SentinelX Trust AI — AI-Powered Trust & Risk Intelligence Platform
+# 🛡️ RitaDrishti-AI — AI-Powered Trust & Risk Intelligence Platform
 
 [![Python 3.11](https://img.shields.io/badge/Python-3.11-blue.svg)](https://www.python.org/)
 [![FastAPI](https://img.shields.io/badge/FastAPI-0.110.0-009688.svg)](https://fastapi.tiangolo.com/)
@@ -10,7 +10,7 @@
 ---
 
 ## 📌 Executive Summary
-**SentinelX Trust AI** is an enterprise-grade Trust Intelligence and Risk Intelligence Platform. It ingests unstructured customer reviews, consumer complaints, and public news articles, applies NLP sentiment analysis and fake review detection, indexes vector embeddings for Retrieval-Augmented Generation (RAG), and orchestrates autonomous **CrewAI Multi-Agents** to generate real-time Trust Scores and executive risk audit reports.
+**RitaDrishti-AI** is an enterprise-grade Trust Intelligence and Risk Intelligence Platform. It ingests unstructured customer reviews, consumer complaints, and public news articles, applies NLP sentiment analysis and fake review detection, indexes vector embeddings for Retrieval-Augmented Generation (RAG), and orchestrates autonomous **CrewAI Multi-Agents** to generate real-time Trust Scores and executive risk audit reports.
 
 ---
 
@@ -59,7 +59,7 @@
 ### 1. Local Python Setup
 ```bash
 # Navigate to directory
-cd D:\sentinelx-trust-ai
+cd D:\RitaDrishti-trust-ai
 
 # Activate Virtual Environment
 .\venv\Scripts\activate

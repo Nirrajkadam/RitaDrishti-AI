@@ -1,5 +1,5 @@
 """
-SentinelX Trust AI — Trust Index API Endpoint
+RitaDrishti-AI — Trust Index API Endpoint
 """
 
 from fastapi import APIRouter, HTTPException

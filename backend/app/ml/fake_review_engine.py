@@ -1,5 +1,5 @@
 """
-SentinelX Trust AI — Fake Review & Fraud Detection Engine
+RitaDrishti-AI — Fake Review & Fraud Detection Engine
 
 Theory: Fraudulent reviews exhibit distinct stylistic anomalies (extreme sentiment polarization, high generic n-gram ratio, repetitive characters, missing verified flags).
 Feature Engineering:

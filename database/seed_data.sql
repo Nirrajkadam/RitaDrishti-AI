@@ -1,4 +1,4 @@
--- SentinelX Trust AI — Initial Seed Data Script
+-- RitaDrishti-AI — Initial Seed Data Script
 
 INSERT INTO companies (company_id, name, domain, industry, description, verified_status, country_code)
 VALUES 

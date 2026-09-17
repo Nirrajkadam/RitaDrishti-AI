@@ -1,19 +1,19 @@
 """
-SentinelX Trust AI — Streamlit Dashboard Entrypoint
+RitaDrishti-AI — Streamlit Dashboard Entrypoint
 """
 
 import streamlit as st
 
 st.set_page_config(
-    page_title="SentinelX Trust AI Platform",
+    page_title="RitaDrishti-AI Platform",
     page_icon="🛡️",
     layout="wide",
     initial_sidebar_state="expanded"
 )
 
-st.title("🛡️ SentinelX Trust AI — Trust Intelligence Platform")
+st.title("🛡️ RitaDrishti-AI — Trust Intelligence Platform")
 st.markdown("""
-Welcome to **SentinelX Trust AI**, an enterprise-grade AI/ML platform for **Trust Intelligence, Fraud Detection, Multi-Agent Auditing, and RAG Copilot Intelligence**.
+Welcome to **RitaDrishti-AI**, an enterprise-grade AI/ML platform for **Trust Intelligence, Fraud Detection, Multi-Agent Auditing, and RAG Copilot Intelligence**.
 
 ### 📌 Navigation Quick Guide:
 * **🏠 Home**: Platform overview & top company trust leaderboard.
@@ -36,4 +36,4 @@ with col4:
     st.metric("Multi-Agent Audits Run", "850+", delta="Ollama Llama 3")
 
 st.divider()
-st.info("👈 Select a page from the sidebar to start exploring SentinelX Trust AI.")
+st.info("👈 Select a page from the sidebar to start exploring RitaDrishti-AI.")

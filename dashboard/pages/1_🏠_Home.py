@@ -2,7 +2,7 @@ import streamlit as st
 import pandas as pd
 import plotly.express as px
 
-st.set_page_config(page_title="Home — SentinelX Trust AI", page_icon="🏠", layout="wide")
+st.set_page_config(page_title="Home — RitaDrishti-AI", page_icon="🏠", layout="wide")
 
 st.title("🏠 Platform Overview & Trust Leaderboard")
 

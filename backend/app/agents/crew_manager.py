@@ -1,5 +1,5 @@
 """
-SentinelX Trust AI — CrewAI Multi-Agent System Architecture
+RitaDrishti-AI — CrewAI Multi-Agent System Architecture
 Coordinates 5 specialized AI Agents for autonomous corporate trust & risk auditing:
 1. Research Agent (OSINT & Data Mining)
 2. Risk Agent (Fraud & Anomaly Auditor)
@@ -78,13 +78,13 @@ class ReportAgent:
     """
     def generate_report(self, company_name: str, agent_outputs: List[Dict[str, Any]]) -> str:
         report_md = f"""# 🛡️ Executive Trust Audit Report: {company_name}
-**Platform**: SentinelX Trust AI Multi-Agent Audit System  
+**Platform**: RitaDrishti-AI Multi-Agent Audit System  
 **Date**: September 2026 | **Classification**: Confidential Enterprise Assessment
 
 ---
 
 ## Executive Summary
-SentinelX Multi-Agent System completed a comprehensive 360-degree assessment of **{company_name}**. The company has been assigned a verified **Trust Index** based on real-time sentiment signals, fake review detection metrics, and consumer dispute resolution audits.
+RitaDrishti Multi-Agent System completed a comprehensive 360-degree assessment of **{company_name}**. The company has been assigned a verified **Trust Index** based on real-time sentiment signals, fake review detection metrics, and consumer dispute resolution audits.
 
 ---
 
@@ -102,7 +102,7 @@ SentinelX Multi-Agent System completed a comprehensive 360-degree assessment of 
 3. **Escalate Dispute Resolution**: Resolve pending high-severity consumer complaints within 14 business days.
 
 ---
-*Report Generated Automatically by SentinelX CrewAI Agent Fleet.*
+*Report Generated Automatically by RitaDrishti CrewAI Agent Fleet.*
 """
         return report_md
 

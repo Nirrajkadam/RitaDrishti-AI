@@ -1,5 +1,5 @@
 """
-SentinelX Trust AI — Local Vector Embeddings Generator
+RitaDrishti-AI — Local Vector Embeddings Generator
 Uses SentenceTransformers (all-MiniLM-L6-v2) to generate 384-dimensional dense vector embeddings.
 """
 
