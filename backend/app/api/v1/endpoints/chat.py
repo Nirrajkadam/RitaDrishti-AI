@@ -13,9 +13,9 @@ router = APIRouter()
 @router.post("/", response_model=ChatQueryResponse)
 async def query_rag_chat(req: ChatQueryRequest):
     """Executes RAG context retrieval and LLM prompt generation for trust copilot chat."""
-    if not settings.ENABLE_OLLAMA and not settings.ENABLE_QDRANT:
+    if not (settings.ENABLE_OLLAMA and settings.ENABLE_QDRANT):
         raise ServiceUnavailableError(
-            code="OLLAMA_DISABLED",
+            code="OLLAMA_OR_QDRANT_DISABLED",
             message="RAG AI Copilot service is disabled. Set ENABLE_OLLAMA=true and ENABLE_QDRANT=true to enable.",
             retryable=False
         )

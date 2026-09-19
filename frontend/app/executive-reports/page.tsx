@@ -17,10 +17,7 @@ interface Report {
   status: "ready" | "scheduled" | "processing";
 }
 
-const initialReports: Report[] = [
-  { name: "Acme Cloud Executive Audit", type: "CrewAI Multi-Agent Audit", period: "Sep 2026", generated: "2026-09-18", status: "ready" },
-  { name: "FinPay Tech Risk Brief", type: "Fraud & Trust Audit", period: "Sep 2026", generated: "2026-09-17", status: "ready" },
-];
+const initialReports: Report[] = [];
 
 const statusVariant = { ready: "sight", scheduled: "neutral", processing: "watch" } as const;
 

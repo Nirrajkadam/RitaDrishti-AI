@@ -2,28 +2,24 @@
 RitaDrishti-AI — Multi-Agent Executive Reports API Endpoint
 """
 
-from fastapi import APIRouter
+from fastapi import APIRouter, Depends
 from backend.app.config import settings
 from backend.app.core.exceptions import ServiceUnavailableError
+from backend.app.core.security import get_current_user
+from backend.app.db.models import UserModel
 from backend.app.db.schemas import AuditReportRequest, AuditReportResponse
 
 router = APIRouter()
 
 
 @router.post("/generate", response_model=AuditReportResponse)
-async def generate_executive_report(req: AuditReportRequest):
+async def generate_executive_report(
+    req: AuditReportRequest,
+    current_user: UserModel = Depends(get_current_user)
+):
     """Triggers CrewAI Multi-Agent audit workflow and returns executive markdown report."""
-    if not settings.ENABLE_CREWAI:
-        raise ServiceUnavailableError(
-            code="CREWAI_DISABLED",
-            message="CrewAI Multi-Agent Report Generation service is disabled. Set ENABLE_CREWAI=true to enable.",
-            retryable=False
-        )
-
-    from backend.app.agents.crew_manager import CrewManager
-    crew_manager = CrewManager()
-    audit_res = crew_manager.run_full_audit(company_name=req.company_name)
-    return {
-        "company_name": req.company_name,
-        "report_markdown": audit_res["report_markdown"]
-    }
+    raise ServiceUnavailableError(
+        code="CREWAI_DISABLED",
+        message="CrewAI Multi-Agent live research pipeline is disabled in this prototype environment.",
+        retryable=False
+    )

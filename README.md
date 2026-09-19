@@ -21,11 +21,11 @@ The system ingests customer review text, executes regex PII sanitization (maskin
 
 | Layer | Technology | Functional Responsibility | Status |
 | :--- | :--- | :--- | :--- |
-| **Security & Authentication** | `pwdlib[argon2]`, `pyjwt` | Public rate-limited registration/login endpoints (`POST /auth/register`, `POST /auth/login`); Bearer JWT validation. | **Production Ready** |
-| **Data Sanitization** | Python Regex Engine | Automatic PII redaction (emails, phone numbers, payment details, SSNs) before persistence and ML processing. | **Production Ready** |
-| **Fake Review ML Classifier** | `scikit-learn` Pipeline, `joblib` | Real probability scoring $[0.0, 1.0]$ combining TF-IDF vectorization with character case ratios, exclamation density, and lexical entropy. | **Production Ready** |
-| **Relational Storage & Migration** | `SQLAlchemy` 2.0, `Alembic`, `asyncpg`, `aiosqlite` | Portable AsyncSession repositories with atomic multi-table transactions and versioned Alembic schema migrations. | **Production Ready** |
-| **Frontend Applications** | `Next.js` 14 (App Router) & `Streamlit` | Modern web interface (Next.js) and interactive analytical dashboard (Streamlit). | **Production Ready** |
+| **Security & Authentication** | `pwdlib[argon2]`, `pyjwt` | Public rate-limited registration/login endpoints (`POST /auth/register`, `POST /auth/login`); Bearer JWT validation. | **Verified Prototype Layer** |
+| **Data Sanitization** | Python Regex Engine | Automated PII redaction (emails, phone numbers, payment details, SSNs) before persistence and ML processing. | **Verified Prototype Layer** |
+| **Fake Review ML Classifier** | `scikit-learn` Pipeline, `joblib` | Real probability scoring $[0.0, 1.0]$ combining TF-IDF vectorization with character case ratios, exclamation density, and lexical entropy. | **Verified Prototype Layer** |
+| **Relational Storage & Migration** | `SQLAlchemy` 2.0, `Alembic`, `asyncpg`, `aiosqlite` | Portable AsyncSession repositories with atomic multi-table transactions and versioned Alembic schema migrations. | **Verified Prototype Layer** |
+| **Frontend Applications** | `Next.js` 14 (App Router) & `Streamlit` | Modern web interface (Next.js) and interactive analytical dashboard (Streamlit). | **Verified Prototype Layer** |
 | **RAG & Multi-Agent Subsystems** | `Ollama` / `Qdrant` / `CrewAI` | Vector search, Llama 3 LLM copilot, and autonomous agent audit briefs (disabled by default via feature flags). | **Experimental (Flagged)** |
 | **NPU Hardware Acceleration** | ONNX Runtime DirectML / QNN | Edge hardware acceleration on Qualcomm Snapdragon NPU processors. | **Experimental (Flagged)** |
 

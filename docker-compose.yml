@@ -40,6 +40,7 @@ services:
     ports:
       - "8000:8000"
     environment:
+      APP_ENV: production
       DATABASE_URL: postgresql+asyncpg://ritadrishti:ritadrishti_secret@postgres:5432/ritadrishti_trust_db
       JWT_SECRET: ritadrishti_dev_secret_change_in_production_2026
       QDRANT_HOST: qdrant
@@ -57,12 +58,14 @@ services:
     build:
       context: ./frontend
       dockerfile: Dockerfile
+      args:
+        NEXT_PUBLIC_API_BASE_URL: http://localhost:8000
     container_name: RitaDrishti_frontend
     restart: always
     ports:
       - "3000:3000"
     environment:
-      NEXT_PUBLIC_API_BASE_URL: http://backend:8000
+      NEXT_PUBLIC_API_BASE_URL: http://localhost:8000
     depends_on:
       - backend
 

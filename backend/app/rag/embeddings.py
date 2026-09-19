@@ -25,18 +25,8 @@ class EmbeddingEngine:
         if not texts:
             return []
 
-        if self.model:
-            embeddings = self.model.encode(texts, convert_to_numpy=True, normalize_embeddings=True)
-            return embeddings.tolist()
+        if not self.model:
+            raise RuntimeError("SentenceTransformer model is unavailable. Install sentence-transformers to generate embeddings.")
 
-        # Fallback dummy normalized random embeddings for offline/testing mode
-        dim = 384
-        dummy_list = []
-        for text in texts:
-            # Seed based on text hash for deterministic fallback
-            seed = sum(ord(c) for c in text) % 10000
-            np.random.seed(seed)
-            vec = np.random.randn(dim)
-            vec = vec / np.linalg.norm(vec)
-            dummy_list.append(vec.tolist())
-        return dummy_list
+        embeddings = self.model.encode(texts, convert_to_numpy=True, normalize_embeddings=True)
+        return embeddings.tolist()

@@ -21,4 +21,4 @@ Designed for CDAC PG-DBDA Placement, Tech Lead / CTO Roles, and Engineering Appl
 * **Situation**: In RitaDrishti-AI, public review inputs contained sensitive PII (emails, phone numbers, credit cards, SSNs) and required reliable multi-table atomic storage.
 * **Task**: Design a compliant, high-speed ingestion ETL pipeline that sanitizes data before database insertion and atomic analysis.
 * **Action**: Implemented regex masking for PII, created atomic AsyncSession database repositories (`ReviewRepository.create_review_with_analysis`), and used Argon2 + PyJWT for secure API authentication.
-* **Result**: Guaranteed 100% PII redaction prior to DB storage and achieved zero partial-state writes through single-transaction database rollbacks.
+* **Result**: Guaranteed automated regex redaction of target PII categories (emails, phone numbers, credit cards, SSNs) prior to DB storage and achieved zero partial-state writes through single-transaction database rollbacks.

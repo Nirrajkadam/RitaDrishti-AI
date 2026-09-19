@@ -65,11 +65,11 @@ async def test_database_connected_trust_and_risk_endpoints(client: AsyncClient, 
 async def test_disabled_chat_endpoint_returns_503(client: AsyncClient):
     resp = await client.post("/api/v1/chat/", json={"query": "What is Acme trust score?"})
     assert resp.status_code == 503
-    assert resp.json()["error"]["code"] == "OLLAMA_DISABLED"
+    assert resp.json()["error"]["code"] == "OLLAMA_OR_QDRANT_DISABLED"
 
 
 @pytest.mark.asyncio
-async def test_disabled_reports_endpoint_returns_503(client: AsyncClient):
-    resp = await client.post("/api/v1/reports/generate", json={"company_name": "Acme Cloud"})
+async def test_disabled_reports_endpoint_returns_503(client: AsyncClient, auth_headers: dict):
+    resp = await client.post("/api/v1/reports/generate", json={"company_name": "Acme Cloud"}, headers=auth_headers)
     assert resp.status_code == 503
     assert resp.json()["error"]["code"] == "CREWAI_DISABLED"

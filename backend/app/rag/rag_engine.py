@@ -123,11 +123,7 @@ EXECUTIVE ANSWER:"""
             )
             answer = response["message"]["content"]
         except Exception as e:
-            # Fallback deterministic structured response if Ollama service is offline
-            answer = f"**RitaDrishti Trust Intelligence Briefing**:\n\nBased on retrieved records ({', '.join(set(sources)) if sources else 'Database Cache'}):\n"
-            for doc in retrieved_docs[:3]:
-                answer += f"- **{doc['type']}**: {doc['text'][:180]}...\n"
-            answer += "\n*Note: Local Ollama service was unavailable; showing vector-retrieved context directly.*"
+            raise RuntimeError(f"Ollama service execution failed: {e}")
 
         return {
             "query": query,

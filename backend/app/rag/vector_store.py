@@ -56,7 +56,7 @@ class VectorStoreManager:
         for doc, emb in zip(self.documents, self.vectors):
             if company_id and str(doc.get("company_id")) != str(company_id):
                 continue
-            sim = float(np.dot(q_vec, np.array(emb, dtype=np.float32)))
+            sim = float(np.dot(q_vec.flatten(), np.array(emb, dtype=np.float32)))
             d = doc.copy()
             d["similarity_score"] = sim
             results.append(d)

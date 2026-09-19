@@ -34,35 +34,40 @@ export default function CompanyIntelligencePage() {
   useEffect(() => {
     async function initSessionAndCompanies() {
       try {
-        if (!getAuthToken()) {
-          // Register demo analyst account
+        let token = getAuthToken();
+        if (!token) {
+          const demoUsername = `analyst_${Date.now()}`;
+          const demoPassword = "SecurePassword123!";
+
           try {
-            const regRes: any = await apiFetch("/api/v1/auth/register", {
+            await apiFetch("/api/v1/auth/register", {
               method: "POST",
               body: JSON.stringify({
-                email: `analyst_${Date.now()}@ritadrishti.ai`,
-                username: `analyst_${Date.now()}`,
-                password: "SecurePassword123!",
+                email: `${demoUsername}@ritadrishti.ai`,
+                username: demoUsername,
+                password: demoPassword,
                 full_name: "Auditor Analyst"
               })
             });
-            setAuthenticatedUser(regRes.username);
           } catch (regErr) {
-            // Fallback login if already registered
+            // Fallback if already registered
           }
 
           const loginRes: any = await apiFetch("/api/v1/auth/login", {
             method: "POST",
             body: JSON.stringify({
-              username: "testuser",
-              password: "TestPassword123!"
+              username: demoUsername,
+              password: demoPassword
             })
-          }).catch(() => null);
+          });
 
           if (loginRes?.access_token) {
             setAuthToken(loginRes.access_token);
-            setAuthenticatedUser(loginRes.username);
+            token = loginRes.access_token;
+            setAuthenticatedUser(demoUsername);
           }
+        } else {
+          setAuthenticatedUser("Active Auditor");
         }
 
         // Fetch Companies from backend DB
