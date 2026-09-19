@@ -75,11 +75,13 @@ class NaturalLanguageQueryEngine:
             if f["verified_only"] and not comp.get("verified_status", False):
                 continue
             # Match Trust Score Bounds
-            score = comp.get("trust_score", 0.0)
-            if f["min_trust_score"] and score < f["min_trust_score"]:
-                continue
-            if f["max_trust_score"] and score > f["max_trust_score"]:
-                continue
+            score = comp.get("trust_score")
+            if f["min_trust_score"]:
+                if score is None or score < f["min_trust_score"]:
+                    continue
+            if f["max_trust_score"]:
+                if score is None or score > f["max_trust_score"]:
+                    continue
 
             results.append(comp)
 

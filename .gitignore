@@ -43,6 +43,7 @@ postgresql-18.4-2-windows-x64.exe
 # Testing & Cache
 .pytest_cache/
 .coverage
+coverage.xml
 htmlcov/
 
 # Node / Next.js Frontend

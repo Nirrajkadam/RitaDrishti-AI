@@ -165,12 +165,36 @@ export default function CompanyIntelligencePage() {
         description="Authenticated vertical workflow: PII sanitization, joblib model inference, and atomic DB persistence."
       />
 
-      {authenticatedUser && (
-        <div className="mx-6 mb-3 p-2.5 rounded bg-graphite-800 border border-line text-[12px] flex items-center justify-between">
-          <span className="text-ink-400">Authenticated Session: <strong className="text-emerald-400">{authenticatedUser}</strong></span>
-          <Badge variant="sight">Bearer JWT Active</Badge>
+      <div className="mx-6 mb-3 p-3 rounded bg-amber-950/40 border border-amber-800/60 text-[12px] flex items-center justify-between">
+        <div className="flex items-center gap-2">
+          <Badge variant="watch">Development Prototype Auth</Badge>
+          <span className="text-amber-200">
+            Authenticated as: <strong className="text-emerald-400">{authenticatedUser || "Guest"}</strong> (JWT stored in client state via <code>POST /api/v1/auth/login</code>)
+          </span>
         </div>
-      )}
+        <Button size="sm" variant="outline" onClick={async () => {
+          const demoUsername = `analyst_${Date.now()}`;
+          const demoPassword = "SecurePassword123!";
+          try {
+            await apiFetch("/api/v1/auth/register", {
+              method: "POST",
+              body: JSON.stringify({ email: `${demoUsername}@ritadrishti.ai`, username: demoUsername, password: demoPassword, full_name: "Auditor Analyst" })
+            });
+            const loginRes: any = await apiFetch("/api/v1/auth/login", {
+              method: "POST",
+              body: JSON.stringify({ username: demoUsername, password: demoPassword })
+            });
+            if (loginRes?.access_token) {
+              setAuthToken(loginRes.access_token);
+              setAuthenticatedUser(demoUsername);
+            }
+          } catch (e: any) {
+            setErrorMessage(e.message || "Authentication failed");
+          }
+        }}>
+          Re-Authenticate Demo Auditor
+        </Button>
+      </div>
 
       {errorMessage && (
         <div className="mx-6 mb-3 p-3 rounded bg-rose-950/60 border border-rose-800/80 text-[12px] text-rose-300 flex items-center gap-2">

@@ -10,15 +10,22 @@ Architecture:
 """
 
 from typing import List, Dict, Any
+from backend.app.config import settings
 from backend.app.rag.embeddings import EmbeddingEngine
 from backend.app.rag.vector_store import VectorStoreManager
+
+
+class RAGUnavailableError(Exception):
+    """Domain exception raised when RAG vector search or LLM generation is unavailable."""
+    pass
 
 
 class RAGEngine:
     def __init__(self):
         self.embedding_engine = EmbeddingEngine()
         self.vector_store = VectorStoreManager()
-        self.ollama_model = "llama3:8b"
+        self.ollama_model = settings.OLLAMA_MODEL
+        self.ollama_base_url = settings.OLLAMA_BASE_URL
 
     def chunk_text(self, text: str, chunk_size: int = 500, overlap: int = 64) -> List[str]:
         """Splits long document text into overlapping chunks."""
@@ -123,7 +130,7 @@ EXECUTIVE ANSWER:"""
             )
             answer = response["message"]["content"]
         except Exception as e:
-            raise RuntimeError(f"Ollama service execution failed: {e}")
+            raise RAGUnavailableError(f"Ollama execution failed at {self.ollama_base_url}: {e}")
 
         return {
             "query": query,

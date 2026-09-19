@@ -50,13 +50,17 @@ jobs:
         run: |
           alembic -c backend/alembic.ini upgrade head
 
-      - name: Run Pytest Suite with PostgreSQL & Coverage Enforcement (>=80%)
+      - name: Run Pytest Suite with PostgreSQL & Coverage Enforcement (>=85%)
         env:
           DATABASE_URL: "postgresql+asyncpg://ritadrishti:ritadrishti_secret@localhost:5432/ritadrishti_test_db"
           APP_ENV: "testing"
           JWT_SECRET: "ci_test_secret_key_1234567890_ritadrishti"
         run: |
-          pytest backend/tests/ -v --cov=backend/app --cov-fail-under=80
+          pytest backend/tests/ -v --cov=backend/app --cov-report=term-missing --cov-report=xml --cov-fail-under=85
+
+      - name: Validate Docker Compose Configuration
+        run: |
+          JWT_SECRET=ci-secret POSTGRES_PASSWORD=ci-password docker compose config --quiet
 
   frontend-build:
     runs-on: ubuntu-latest
@@ -76,6 +80,11 @@ jobs:
         working-directory: frontend
         run: |
           npm ci
+
+      - name: Audit Frontend Dependencies
+        working-directory: frontend
+        run: |
+          npm audit --omit=dev --audit-level=moderate || true
 
       - name: Verify Next.js Production Build
         working-directory: frontend

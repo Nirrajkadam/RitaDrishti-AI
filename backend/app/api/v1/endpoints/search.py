@@ -97,8 +97,8 @@ async def natural_language_search(
             score = t_res["trust_index"]
             level = r_res["risk_level"]
         else:
-            score = 75.0
-            level = "Low"
+            score = None
+            level = "UNRATED"
 
         companies_dict.append({
             "company_id": str(c.company_id),

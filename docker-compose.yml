@@ -8,7 +8,7 @@ services:
     restart: always
     environment:
       POSTGRES_USER: ritadrishti
-      POSTGRES_PASSWORD: ritadrishti_secret
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?POSTGRES_PASSWORD must be configured}
       POSTGRES_DB: ritadrishti_trust_db
     ports:
       - "5432:5432"
@@ -41,8 +41,8 @@ services:
       - "8000:8000"
     environment:
       APP_ENV: production
-      DATABASE_URL: postgresql+asyncpg://ritadrishti:ritadrishti_secret@postgres:5432/ritadrishti_trust_db
-      JWT_SECRET: ritadrishti_dev_secret_change_in_production_2026
+      DATABASE_URL: postgresql+asyncpg://ritadrishti:${POSTGRES_PASSWORD:?POSTGRES_PASSWORD must be configured}@postgres:5432/ritadrishti_trust_db
+      JWT_SECRET: ${JWT_SECRET:?JWT_SECRET must be configured}
       QDRANT_HOST: qdrant
       QDRANT_PORT: 6333
       OLLAMA_BASE_URL: http://host.docker.internal:11434

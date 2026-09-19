@@ -20,11 +20,18 @@ async def query_rag_chat(req: ChatQueryRequest):
             retryable=False
         )
 
-    from backend.app.rag.rag_engine import RAGEngine
-    rag_engine = RAGEngine()
-    res = rag_engine.generate_rag_response(query=req.query, company_id=req.company_id)
-    return {
-        "query": req.query,
-        "answer": res["answer"],
-        "sources": res["sources"]
-    }
+    try:
+        from backend.app.rag.rag_engine import RAGEngine, RAGUnavailableError
+        rag_engine = RAGEngine()
+        res = rag_engine.generate_rag_response(query=req.query, company_id=req.company_id)
+        return {
+            "query": req.query,
+            "answer": res["answer"],
+            "sources": res["sources"]
+        }
+    except (RAGUnavailableError, RuntimeError, ImportError) as e:
+        raise ServiceUnavailableError(
+            code="RAG_SERVICE_UNAVAILABLE",
+            message=f"RAG AI Copilot service is unavailable: {e}",
+            retryable=False
+        )
