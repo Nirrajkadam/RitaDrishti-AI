@@ -16,7 +16,7 @@ export function DataTable<T>({
 }: {
   columns: Column<T>[];
   rows: T[];
-  rowKey: (row: T) => string;
+  rowKey: (row: T, index: number) => string;
 }) {
   return (
     <div className="overflow-x-auto">
@@ -40,9 +40,9 @@ export function DataTable<T>({
           </tr>
         </thead>
         <tbody>
-          {rows.map((row) => (
+          {rows.map((row, idx) => (
             <tr
-              key={rowKey(row)}
+              key={rowKey(row, idx)}
               className="border-b border-line/60 last:border-0 hover:bg-graphite-700/40 transition-colors"
             >
               {columns.map((col) => (

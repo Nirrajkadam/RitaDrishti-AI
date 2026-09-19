@@ -8,6 +8,35 @@ from datetime import datetime
 from uuid import UUID
 
 
+# User Auth Schemas
+class UserRegisterRequest(BaseModel):
+    email: EmailStr
+    username: str = Field(..., min_length=3, max_length=50)
+    password: str = Field(..., min_length=8, max_length=100)
+    full_name: Optional[str] = None
+
+class UserLoginRequest(BaseModel):
+    username: str
+    password: str
+
+class TokenResponse(BaseModel):
+    access_token: str
+    token_type: str = "bearer"
+    user_id: UUID
+    username: str
+
+class UserResponse(BaseModel):
+    user_id: UUID
+    email: str
+    username: str
+    full_name: Optional[str] = None
+    is_active: bool
+    is_admin: bool
+    created_at: datetime
+    class Config:
+        from_attributes = True
+
+
 # Company Schemas
 class CompanyBase(BaseModel):
     name: str
@@ -41,6 +70,23 @@ class ReviewResponse(ReviewCreate):
     created_at: datetime
     class Config:
         from_attributes = True
+
+class AIAnalysisResponse(BaseModel):
+    analysis_id: UUID
+    review_id: UUID
+    fake_probability: float
+    is_suspicious: bool
+    sentiment_score: float
+    sentiment_label: str
+    feature_metrics: Dict[str, Any]
+    model_version: str
+    created_at: datetime
+    class Config:
+        from_attributes = True
+
+class ReviewWithAnalysisResponse(BaseModel):
+    review: ReviewResponse
+    analysis: AIAnalysisResponse
 
 
 # Trust & Risk Schemas
