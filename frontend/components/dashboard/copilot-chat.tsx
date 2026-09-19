@@ -4,12 +4,14 @@ import { useState } from "react";
 import { Sparkles, Send, User, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
+import { apiFetch } from "@/lib/api";
 
 interface Message {
   id: string;
   role: "user" | "assistant";
   content: string;
   sources?: string[];
+  isError?: boolean;
 }
 
 const INITIAL: Message[] = [
@@ -41,31 +43,26 @@ export function CopilotChat() {
     setLoading(true);
 
     try {
-      const res = await fetch("http://localhost:8000/api/v1/chat/", {
+      const data: any = await apiFetch("/api/v1/chat/", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ query: text })
       });
 
-      if (res.ok) {
-        const data = await res.json();
-        const replyMsg: Message = {
-          id: crypto.randomUUID(),
-          role: "assistant",
-          content: data.answer || "Answer generated from vector retrieval.",
-          sources: data.sources || []
-        };
-        setMessages((m) => [...m, replyMsg]);
-      } else {
-        throw new Error("API response error");
-      }
-    } catch (err) {
-      const fallbackMsg: Message = {
+      const replyMsg: Message = {
         id: crypto.randomUUID(),
         role: "assistant",
-        content: `**RitaDrishti Trust Copilot Response**:\nBased on active company intelligence records:\n- Query: "${text}"\n- Status: Vector RAG Retrieval executed.\n- Verified Trust Index: 74.8/100 across monitored entities.`
+        content: data.answer || "Answer generated from vector retrieval.",
+        sources: data.sources || []
       };
-      setMessages((m) => [...m, fallbackMsg]);
+      setMessages((m) => [...m, replyMsg]);
+    } catch (err: any) {
+      const errorMsg: Message = {
+        id: crypto.randomUUID(),
+        role: "assistant",
+        content: `⚠️ **API Service Notice**: ${err.message || "Request failed."}`,
+        isError: true
+      };
+      setMessages((m) => [...m, errorMsg]);
     } finally {
       setLoading(false);
     }
@@ -83,7 +80,7 @@ export function CopilotChat() {
               className={cn(
                 "flex h-7 w-7 shrink-0 items-center justify-center rounded-md border",
                 m.role === "assistant"
-                  ? "bg-signal-faint border-signal-dim/40 text-signal"
+                  ? m.isError ? "bg-rose-950 border-rose-800 text-rose-400" : "bg-signal-faint border-signal-dim/40 text-signal"
                   : "bg-graphite-700 border-line text-ink-400"
               )}
             >
@@ -97,7 +94,7 @@ export function CopilotChat() {
               className={cn(
                 "max-w-[80%] rounded-md px-3.5 py-2.5 text-[13px] leading-relaxed",
                 m.role === "assistant"
-                  ? "bg-graphite-800 border border-line text-ink-100"
+                  ? m.isError ? "bg-rose-950/40 border border-rose-800/80 text-rose-300" : "bg-graphite-800 border border-line text-ink-100"
                   : "bg-signal/10 border border-signal-dim/30 text-ink-100"
               )}
             >
@@ -114,7 +111,7 @@ export function CopilotChat() {
         {loading && (
           <div className="flex gap-3 items-center text-ink-500 text-[12px] italic">
             <Loader2 className="h-4 w-4 animate-spin text-signal" />
-            Generating grounded answer via SentenceTransformers & Ollama Llama 3...
+            Querying backend RAG API endpoint...
           </div>
         )}
       </div>

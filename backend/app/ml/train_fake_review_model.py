@@ -166,29 +166,22 @@ def export_artifact_and_model_card(model: Pipeline, metrics: dict):
         f.write(sha256_hash + "\n")
 
     # Write MODEL_CARD.md
-    model_card_content = f"""# Model Card: RitaDrishti Fake Review Classifier
+    model_card_content = f"""# Model Card: RitaDrishti Prototype Fake Review Classifier
 
 ## Model Overview
-- **Model Architecture**: Scikit-Learn Pipeline (`ColumnTransformer` combining TF-IDF N-gram vectorizer + StandardScaler for 6 text style features -> `LogisticRegression`).
+- **Model Architecture**: Scikit-Learn Pipeline (`ColumnTransformer` combining TF-IDF N-gram vectorizer + `StandardScaler` for 6 text style features -> `LogisticRegression`).
 - **Artifact File**: `fake_review_model.joblib`
 - **SHA-256 Checksum**: `{sha256_hash}`
 - **Release Version**: 1.0.0
 
+## Dataset & Training Scope
+- **Training Set Note**: Trained on a curated benchmark seed dataset of 22 representative reviews (12 legitimate, 10 deceptive) designed for pipeline verification and deterministic end-to-end testing.
+- **Evaluation Split**: {metrics['test_sample_count']} samples evaluated on test split (`random_state=42`, stratified).
+- **Accuracy**: {metrics['accuracy']} | **F1 Score**: {metrics['f1_score']}
+- **Production Recommendation**: For production enterprise deployment, replace `train_fake_review_model.py` dataset input with full public fake-review callsets (e.g. Amazon Deceptive Reviews / Yelp Spam Dataset).
+
 ## Intended Use
-Determines probability $[0.0, 1.0]$ of deceptive or fraudulent online customer review text based on lexical diversity entropy, character case ratios, exclamation frequency, and generic spam phrase matching.
-
-## Evaluation Metrics (Evaluated on Test Split, `random_state=42`)
-- **Test Sample Size**: {metrics['test_sample_count']} samples
-- **Accuracy**: {metrics['accuracy']}
-- **Precision**: {metrics['precision']}
-- **Recall**: {metrics['recall']}
-- **F1 Score**: {metrics['f1_score']}
-- **PR-AUC**: {metrics['pr_auc']}
-- **Confusion Matrix**: `{metrics['confusion_matrix']}`
-
-## Ethical Considerations & Limitations
-- Model is trained on English text review data.
-- Intended for automated risk scoring assistance, not sole decision-making for user bans.
+Calculates probability $[0.0, 1.0]$ of deceptive or fraudulent online customer review text based on lexical diversity entropy, character case ratios, exclamation frequency, and generic spam phrase matching.
 """
 
     with open(card_path, "w") as f:

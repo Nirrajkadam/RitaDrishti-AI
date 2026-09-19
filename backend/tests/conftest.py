@@ -1,11 +1,13 @@
 """
 RitaDrishti-AI — Pytest Fixtures Configuration
 Supports both SQLite in-memory and PostgreSQL (via settings.DATABASE_URL).
+Uses NullPool to prevent connection reuse issues across async event loops in PostgreSQL.
 """
 
 import pytest
 import pytest_asyncio
 from httpx import AsyncClient, ASGITransport
+from sqlalchemy.pool import NullPool
 from sqlalchemy.ext.asyncio import create_async_engine, AsyncSession, async_sessionmaker
 
 from backend.app.config import settings
@@ -17,8 +19,8 @@ from backend.app.db.models import Base
 # Force APP_ENV to testing during pytest runs
 settings.APP_ENV = "testing"
 
-# Engine configuration based on settings.DATABASE_URL
-engine_kwargs = {}
+# Engine configuration with NullPool to isolate connections per test function
+engine_kwargs = {"poolclass": NullPool}
 if "sqlite" in settings.DATABASE_URL:
     engine_kwargs["connect_args"] = {"check_same_thread": False}
 

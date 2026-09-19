@@ -6,7 +6,8 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { DataTable, type Column } from "@/components/dashboard/data-table";
-import { FileText, Download, Sparkles, Loader2 } from "lucide-react";
+import { FileText, Download, Sparkles, Loader2, AlertCircle } from "lucide-react";
+import { apiFetch } from "@/lib/api";
 
 interface Report {
   name: string;
@@ -19,7 +20,6 @@ interface Report {
 const initialReports: Report[] = [
   { name: "Acme Cloud Executive Audit", type: "CrewAI Multi-Agent Audit", period: "Sep 2026", generated: "2026-09-18", status: "ready" },
   { name: "FinPay Tech Risk Brief", type: "Fraud & Trust Audit", period: "Sep 2026", generated: "2026-09-17", status: "ready" },
-  { name: "Apex Logistics Compliance Brief", type: "Supply Chain Audit", period: "Sep 2026", generated: "2026-09-16", status: "ready" },
 ];
 
 const statusVariant = { ready: "sight", scheduled: "neutral", processing: "watch" } as const;
@@ -28,63 +28,33 @@ export default function ExecutiveReportsPage() {
   const [targetCompany, setTargetCompany] = useState("Acme Cloud Solutions");
   const [reports, setReports] = useState<Report[]>(initialReports);
   const [activeReport, setActiveReport] = useState<string>(
-    `# 🛡️ Executive Trust Audit Report: Acme Cloud Solutions
-**Platform**: RitaDrishti AI Multi-Agent Audit System
-**Date**: September 2026 | **Classification**: Confidential Enterprise Assessment
-
----
-
-## Executive Summary
-RitaDrishti Multi-Agent System completed a comprehensive 360-degree assessment of **Acme Cloud Solutions**. The company has been assigned a verified **Trust Index of 88.5/100 (High Trust)**.
-
----
-
-## Agent Audit Breakdown
-### 🤖 Research Agent
-- Gathered 12 OSINT media articles for Acme Cloud Solutions. Found positive press releases regarding infrastructure growth.
-
-### 🤖 Risk Agent
-- Evaluated as Low Risk. Identified zero high-severity anomalies.
-
-### 🤖 Compliance Agent
-- Verified consumer dispute resolution rate is 92%.
-
-### 🤖 Trust Agent
-- Trust Index calculated at 88.5/100 (High Trust). Exceeds industry baseline by +4.2 points.`
+    `# Executive Report Viewer\n\nSelect a target company and click **Run CrewAI Audit** to generate a multi-agent report. Note: Optional subsystems require \`ENABLE_CREWAI=true\` in backend configuration.`
   );
   const [generating, setGenerating] = useState(false);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
   async function generateCrewReport() {
     setGenerating(true);
+    setErrorMessage(null);
+
     try {
-      const res = await fetch("http://localhost:8000/api/v1/reports/generate", {
+      const data: any = await apiFetch("/api/v1/reports/generate", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ company_name: targetCompany })
       });
 
-      if (res.ok) {
-        const data = await res.json();
-        setActiveReport(data.report_markdown);
-        const newReport: Report = {
-          name: `${targetCompany} Executive Audit`,
-          type: "CrewAI Fleet Audit",
-          period: "Sep 2026",
-          generated: new Date().toISOString().split("T")[0],
-          status: "ready"
-        };
-        setReports((prev) => [newReport, ...prev]);
-      } else {
-        throw new Error("API call failed");
-      }
-    } catch (err) {
-      setActiveReport(`# 🛡️ Executive Trust Audit Report: ${targetCompany}
-**Generated via Local CrewAI Multi-Agent Auditor**
-
-- **Research Agent**: Scraped public OSINT news feeds for ${targetCompany}.
-- **Risk Agent**: Calculated Risk Score: 24.5/100 (Low Fraud Signal).
-- **Compliance Agent**: Unresolved consumer dispute rate: <2%.
-- **Trust Agent**: Final Trust Index: 82.4/100 (High Trust Badge).`);
+      setActiveReport(data.report_markdown);
+      const newReport: Report = {
+        name: `${targetCompany} Executive Audit`,
+        type: "CrewAI Fleet Audit",
+        period: "Sep 2026",
+        generated: new Date().toISOString().split("T")[0],
+        status: "ready"
+      };
+      setReports((prev) => [newReport, ...prev]);
+    } catch (err: any) {
+      setErrorMessage(err.message || "Failed to generate executive report.");
+      setActiveReport(`⚠️ **Report Generation Status**: ${err.message || "Request failed."}`);
     } finally {
       setGenerating(false);
     }
@@ -109,23 +79,13 @@ RitaDrishti Multi-Agent System completed a comprehensive 360-degree assessment o
       header: "Status",
       render: (r) => <Badge variant={statusVariant[r.status]} dot>{r.status}</Badge>,
     },
-    {
-      key: "action",
-      header: "",
-      align: "right",
-      render: () => (
-        <Button variant="ghost" size="sm">
-          <Download className="h-3.5 w-3.5" />
-        </Button>
-      ),
-    },
   ];
 
   return (
     <div className="pb-10">
       <PageHeader
         title="Executive Reports"
-        description="Autonomous multi-agent audit reports generated via CrewAI & Llama 3."
+        description="Autonomous multi-agent audit reports generated via CrewAI."
         actions={
           <div className="flex items-center gap-2">
             <select
@@ -145,6 +105,13 @@ RitaDrishti Multi-Agent System completed a comprehensive 360-degree assessment o
         }
       />
 
+      {errorMessage && (
+        <div className="mx-6 mb-3 p-3 rounded bg-rose-950/60 border border-rose-800/80 text-[12px] text-rose-300 flex items-center gap-2">
+          <AlertCircle className="h-4 w-4 text-rose-400 shrink-0" />
+          <span>{errorMessage}</span>
+        </div>
+      )}
+
       <div className="grid grid-cols-1 xl:grid-cols-3 gap-3 px-6">
         <Card className="xl:col-span-1">
           <CardHeader>
@@ -160,7 +127,7 @@ RitaDrishti Multi-Agent System completed a comprehensive 360-degree assessment o
           <CardHeader className="flex flex-row items-center justify-between">
             <div>
               <CardTitle>Live CrewAI Report Viewer</CardTitle>
-              <CardDescription>{targetCompany} — Real-time Multi-Agent Synthesis</CardDescription>
+              <CardDescription>{targetCompany} — Multi-Agent Synthesis</CardDescription>
             </div>
             <Button variant="outline" size="sm">
               <Download className="h-3.5 w-3.5 mr-1" />

@@ -21,6 +21,12 @@ wheels/
 .installed.cfg
 *.egg
 
+# Databases & Storage
+*.db
+ritadrishti.db
+qdrant_data/
+postgres_data/
+
 # Exclude large installer binaries
 *.exe
 postgresql-18.4-2-windows-x64.exe
@@ -33,10 +39,6 @@ postgresql-18.4-2-windows-x64.exe
 .vscode/
 .idea/
 *.swp
-
-# Vector DB & Storage data
-qdrant_data/
-postgres_data/
 
 # Testing & Cache
 .pytest_cache/

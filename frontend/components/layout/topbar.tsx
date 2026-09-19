@@ -4,6 +4,7 @@ import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
 import { Search, Bell, ChevronRight, Loader2 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
+import { apiFetch } from "@/lib/api";
 
 const TITLES: Record<string, { section: string; label: string }> = {
   "/": { section: "Overview", label: "Home Dashboard" },
@@ -42,13 +43,10 @@ export function Topbar() {
     if (!searchQuery.trim()) return;
     setSearching(true);
     try {
-      const res = await fetch(`http://localhost:8000/api/v1/search/nl?prompt=${encodeURIComponent(searchQuery)}`);
-      if (res.ok) {
-        const data = await res.json();
-        setSearchResult(`Found ${data.count} matching entities.`);
-      }
-    } catch (err) {
-      setSearchResult(`Filtered entities matching query.`);
+      const data: any = await apiFetch(`/api/v1/search/nl?prompt=${encodeURIComponent(searchQuery)}`);
+      setSearchResult(`Found ${data.count} matching entities.`);
+    } catch (err: any) {
+      setSearchResult(err.message || "Search request failed.");
     } finally {
       setSearching(false);
       setTimeout(() => setSearchResult(null), 4000);
@@ -84,7 +82,7 @@ export function Topbar() {
       )}
 
       <Badge variant="sight" dot>
-        Qualcomm DirectML
+        DirectML Provider
       </Badge>
 
       <div className="flex items-center gap-2 text-2xs text-ink-600 tabular">
