@@ -1,6 +1,6 @@
 """
 RitaDrishti-AI — Pytest Fixtures Configuration
-Provides in-memory SQLite AsyncSession and httpx.AsyncClient fixtures for fast isolated testing.
+Supports both SQLite in-memory and PostgreSQL (via settings.DATABASE_URL).
 """
 
 import pytest
@@ -8,16 +8,24 @@ import pytest_asyncio
 from httpx import AsyncClient, ASGITransport
 from sqlalchemy.ext.asyncio import create_async_engine, AsyncSession, async_sessionmaker
 
+from backend.app.config import settings
 from backend.app.main import app
 from backend.app.core.database import get_db
+from backend.app.core.rate_limiter import auth_rate_limiter
 from backend.app.db.models import Base
 
-# In-memory SQLite engine for tests
-TEST_DATABASE_URL = "sqlite+aiosqlite:///:memory:"
+# Force APP_ENV to testing during pytest runs
+settings.APP_ENV = "testing"
+
+# Engine configuration based on settings.DATABASE_URL
+engine_kwargs = {}
+if "sqlite" in settings.DATABASE_URL:
+    engine_kwargs["connect_args"] = {"check_same_thread": False}
 
 test_async_engine = create_async_engine(
-    TEST_DATABASE_URL,
-    connect_args={"check_same_thread": False}
+    settings.DATABASE_URL,
+    echo=False,
+    **engine_kwargs
 )
 
 TestAsyncSessionLocal = async_sessionmaker(
@@ -31,7 +39,8 @@ TestAsyncSessionLocal = async_sessionmaker(
 
 @pytest_asyncio.fixture(scope="function")
 async def db_session():
-    """Creates isolated in-memory database tables for each test function."""
+    """Creates isolated database tables for each test function."""
+    auth_rate_limiter.history.clear()
     async with test_async_engine.begin() as conn:
         await conn.run_sync(Base.metadata.create_all)
     
@@ -58,6 +67,7 @@ async def client(db_session: AsyncSession):
 @pytest_asyncio.fixture(scope="function")
 async def auth_headers(client: AsyncClient):
     """Registers and authenticates a test user, returning Bearer authorization headers."""
+    auth_rate_limiter.history.clear()
     user_payload = {
         "email": "testuser@ritadrishti.ai",
         "username": "testuser",

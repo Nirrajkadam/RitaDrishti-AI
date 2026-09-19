@@ -1,23 +1,21 @@
 version: '3.8'
 
 services:
-  # 1. PostgreSQL 18 Relational Database
+  # 1. PostgreSQL 16 Relational Database
   postgres:
     image: postgres:16-alpine
     container_name: RitaDrishti_postgres
     restart: always
     environment:
-      POSTGRES_USER: RitaDrishti
-      POSTGRES_PASSWORD: RitaDrishti_secret
-      POSTGRES_DB: RitaDrishti_trust_db
+      POSTGRES_USER: ritadrishti
+      POSTGRES_PASSWORD: ritadrishti_secret
+      POSTGRES_DB: ritadrishti_trust_db
     ports:
       - "5432:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
-      - ./database/schema.sql:/docker-entrypoint-initdb.d/1_schema.sql
-      - ./database/seed_data.sql:/docker-entrypoint-initdb.d/2_seed.sql
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U RitaDrishti -d RitaDrishti_trust_db"]
+      test: ["CMD-SHELL", "pg_isready -U ritadrishti -d ritadrishti_trust_db"]
       interval: 5s
       timeout: 5s
       retries: 5
@@ -42,17 +40,33 @@ services:
     ports:
       - "8000:8000"
     environment:
-      DATABASE_URL: postgresql+asyncpg://RitaDrishti:RitaDrishti_secret@postgres:5432/RitaDrishti_trust_db
+      DATABASE_URL: postgresql+asyncpg://ritadrishti:ritadrishti_secret@postgres:5432/ritadrishti_trust_db
+      JWT_SECRET: ritadrishti_dev_secret_change_in_production_2026
       QDRANT_HOST: qdrant
       QDRANT_PORT: 6333
       OLLAMA_BASE_URL: http://host.docker.internal:11434
+      ENABLE_OLLAMA: "false"
+      ENABLE_CREWAI: "false"
+      ENABLE_QDRANT: "false"
     depends_on:
       postgres:
         condition: service_healthy
-      qdrant:
-        condition: service_started
 
-  # 4. Streamlit Interactive Multi-Page Dashboard
+  # 4. Next.js Enterprise Web Interface
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: RitaDrishti_frontend
+    restart: always
+    ports:
+      - "3000:3000"
+    environment:
+      NEXT_PUBLIC_API_BASE_URL: http://backend:8000
+    depends_on:
+      - backend
+
+  # 5. Streamlit Interactive Dashboard
   dashboard:
     build:
       context: .

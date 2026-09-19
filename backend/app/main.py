@@ -7,7 +7,7 @@ from fastapi.responses import JSONResponse
 from fastapi.middleware.cors import CORSMiddleware
 from contextlib import asynccontextmanager
 
-from backend.app.config import settings
+from backend.app.config import settings, validate_production_secrets
 from backend.app.core.database import init_db
 from backend.app.core.exceptions import RitaDrishtiException
 from backend.app.api.v1.endpoints import (
@@ -18,6 +18,8 @@ from backend.app.api.v1.endpoints import (
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     """App lifespan setup & teardown."""
+    # Fails fast on startup if default JWT secret is used in production environment
+    validate_production_secrets()
     # Ensure database tables exist (SQLite fallback / dev setup)
     await init_db()
     yield

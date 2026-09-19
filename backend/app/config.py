@@ -4,10 +4,13 @@ RitaDrishti-AI — Application Settings & Feature Configuration
 
 import sys
 from typing import List
+from pydantic import ConfigDict
 from pydantic_settings import BaseSettings
 
 
 class Settings(BaseSettings):
+    model_config = ConfigDict(env_file=".env", extra="ignore")
+
     APP_NAME: str = "RitaDrishti-AI"
     APP_ENV: str = "development" # "development", "testing", "production"
     DEBUG: bool = True
@@ -34,10 +37,6 @@ class Settings(BaseSettings):
     ENABLE_QDRANT: bool = False
     ENABLE_OLLAMA: bool = False
     ENABLE_NPU: bool = False
-
-    class Config:
-        env_file = ".env"
-        extra = "ignore"
 
 
 settings = Settings()

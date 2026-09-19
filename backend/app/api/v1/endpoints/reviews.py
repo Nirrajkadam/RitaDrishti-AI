@@ -33,14 +33,14 @@ async def analyze_and_persist_review(
 ):
     """
     Submits, sanitizes, analyzes, and persists a review with ML fake review classification.
-    Authenticated endpoint.
+    Authenticated endpoint. PII is redacted before storage.
     """
     company_repo = CompanyRepository(db)
     company = await company_repo.get_by_id(review_in.company_id)
     if not company:
         raise EntityNotFoundError(f"Company with ID '{review_in.company_id}' not found.")
 
-    # 1. PII Sanitization
+    # 1. PII Sanitization (Redact emails, phone numbers, credit cards, SSNs)
     cleaned_text = sanitize_text(review_in.raw_text)
 
     # 2. Model Inference
@@ -52,17 +52,17 @@ async def analyze_and_persist_review(
 
     # 3. Sentiment Analysis
     sentiment = sentiment_engine.analyze_sentiment(cleaned_text)
-    sentiment_score = float(sentiment.get("polarity", 0.0))
+    sentiment_score = float(sentiment.get("score", 0.0))
     sentiment_label = str(sentiment.get("label", "neutral"))
 
-    # 4. Atomic Transactional Persistence
+    # 4. Atomic Transactional Persistence (Ensure stored raw_text is sanitized as well)
     review_repo = ReviewRepository(db)
     review_obj, analysis_obj = await review_repo.create_review_with_analysis(
         company_id=review_in.company_id,
         user_id=current_user.user_id,
         source=review_in.source,
         rating=review_in.rating,
-        raw_text=review_in.raw_text,
+        raw_text=cleaned_text,  # Redacted PII persisted
         cleaned_text=cleaned_text,
         reviewer_name=review_in.reviewer_name or "Anonymous",
         fake_probability=fake_audit["fake_probability"],

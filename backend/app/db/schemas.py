@@ -3,7 +3,7 @@ RitaDrishti-AI — Pydantic Validation Schemas
 """
 
 from typing import Optional, List, Dict, Any
-from pydantic import BaseModel, Field, EmailStr
+from pydantic import BaseModel, Field, EmailStr, ConfigDict
 from datetime import datetime
 from uuid import UUID
 
@@ -26,6 +26,8 @@ class TokenResponse(BaseModel):
     username: str
 
 class UserResponse(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
     user_id: UUID
     email: str
     username: str
@@ -33,8 +35,6 @@ class UserResponse(BaseModel):
     is_active: bool
     is_admin: bool
     created_at: datetime
-    class Config:
-        from_attributes = True
 
 
 # Company Schemas
@@ -49,11 +49,11 @@ class CompanyCreate(CompanyBase):
     pass
 
 class CompanyResponse(CompanyBase):
+    model_config = ConfigDict(from_attributes=True)
+
     company_id: UUID
     verified_status: bool
     created_at: datetime
-    class Config:
-        from_attributes = True
 
 
 # Review Schemas
@@ -65,13 +65,15 @@ class ReviewCreate(BaseModel):
     reviewer_name: Optional[str] = "Anonymous"
 
 class ReviewResponse(ReviewCreate):
+    model_config = ConfigDict(from_attributes=True)
+
     review_id: UUID
     cleaned_text: Optional[str] = None
     created_at: datetime
-    class Config:
-        from_attributes = True
 
 class AIAnalysisResponse(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
     analysis_id: UUID
     review_id: UUID
     fake_probability: float
@@ -81,8 +83,6 @@ class AIAnalysisResponse(BaseModel):
     feature_metrics: Dict[str, Any]
     model_version: str
     created_at: datetime
-    class Config:
-        from_attributes = True
 
 class ReviewWithAnalysisResponse(BaseModel):
     review: ReviewResponse
