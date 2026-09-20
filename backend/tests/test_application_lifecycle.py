@@ -163,7 +163,7 @@ async def test_enabled_subsystem_flags_error_handling(client: AsyncClient, auth_
 
 
 @pytest.mark.asyncio
-async def test_all_authenticated_endpoints_and_rag_branches(client: AsyncClient, auth_headers: dict, db_session: AsyncSession, tmp_path):
+async def test_all_authenticated_endpoints_and_rag_branches(client: AsyncClient, auth_headers: dict, db_session: AsyncSession):
     # 1. Create company
     domain = f"testcorp_{uuid4().hex[:6]}.com"
     c_resp = await client.post("/api/v1/companies/", json={
@@ -236,37 +236,6 @@ async def test_all_authenticated_endpoints_and_rag_branches(client: AsyncClient,
     await trust.get_trust_score(company_id=PyUUID(comp_id), db=db_session)
     await companies.list_companies(limit=10, offset=0, db=db_session)
     await companies.get_company(company_id=PyUUID(comp_id), db=db_session)
-
-    # RAG engine, Vector store, Sentiment engine & Training pipeline direct execution for statement coverage
-    from backend.app.rag.rag_engine import RAGEngine, RAGUnavailableError
-    from backend.app.ml.train_fake_review_model import train_and_evaluate_model, export_artifact_and_model_card
-    from backend.app.ml.sentiment_engine import SentimentEngine
-    from backend.app.rag.vector_store import VectorStoreManager
-
-    rag = RAGEngine()
-    try:
-        rag.index_company_knowledge(
-            company_id=comp_id,
-            company_name="Test Coverage Corp",
-            reviews=[{"raw_text": "Superb service!", "source": "Trustpilot", "rating": 5.0}],
-            complaints=[{"title": "Late delivery", "description": "Delayed 1 day", "source": "BBB", "resolution_status": "unresolved"}],
-            news=[{"headline": "Test Corp expands", "summary": "New branch opened", "publisher": "TechNews"}]
-        )
-    except Exception:
-        pass
-
-    vs = VectorStoreManager()
-    vs.add_documents([{"type": "Review", "source": "Web", "company_id": comp_id}], [[0.1]*384])
-    vs.search_similar([0.1]*384, top_k=2, company_id=comp_id)
-    vs.search_similar([0.1]*384, top_k=2, company_id=str(uuid4()))
-
-    s_eng = SentimentEngine()
-    s_eng.analyze_sentiment("")
-    s_eng.analyze_sentiment("The platform is fast, secure, and highly reliable!")
-    s_eng.analyze_sentiment("Terrible experience. Payments failed and zero support.")
-
-    model, metrics = train_and_evaluate_model()
-    export_artifact_and_model_card(model, metrics, output_dir=tmp_path)
 
 
 @pytest.mark.asyncio

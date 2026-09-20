@@ -103,13 +103,29 @@ class ReportAgent:
     Responsibilities: Synthesizes inputs from Research, Risk, Compliance, and Trust Agents into a consolidated executive markdown report.
     """
     def generate_report(self, company_name: str, agent_outputs: List[Dict[str, Any]], evidence: AuditEvidence = None) -> str:
-        has_full_evidence = evidence is not None and len(evidence.analyses) > 0 and evidence.trust_score is not None
-        if has_full_evidence:
-            summary = f"RitaDrishti Multi-Agent System completed a comprehensive 360-degree assessment of **{company_name}**. The company has been assigned a verified **Trust Index** of **{evidence.trust_score:.1f}/100** based on real-time sentiment signals, fake review detection metrics, and consumer dispute resolution audits."
-        else:
-            summary = f"RitaDrishti Multi-Agent System performed a **Partial Evidence Assessment** for **{company_name}** based on available ingested records. *Note: A full 360-degree assessment and verified Trust Index require direct review dataset ingestion.*"
+        has_reviews = evidence is not None and len(evidence.analyses) > 0
+        has_complaints = evidence is not None and len(evidence.complaints) > 0
+        has_news = evidence is not None and len(evidence.articles) > 0
 
-        report_md = f"""# 🛡️ Executive Trust Audit Report: {company_name}
+        score_str = f"**{evidence.trust_score:.1f}/100**" if (evidence is not None and evidence.trust_score is not None) else "**N/A**"
+
+        if has_reviews and has_complaints and has_news:
+            report_title = "Multi-Source Trust Assessment"
+            summary = f"**Multi-Source Trust Assessment**: Based on integrated review sentiment, fake-review detection, consumer complaint records, and public news signals for **{company_name}**. The calculated prototype Trust Index is {score_str}."
+        elif has_reviews and has_complaints:
+            report_title = "Review and Complaint Assessment"
+            summary = f"**Review and Complaint Assessment**: Based on persisted review sentiment, fake-review detection, and logged consumer complaint records for **{company_name}**. The calculated prototype Trust Index is {score_str}. *No news, regulatory, or external OSINT evidence was included.*"
+        elif has_reviews and has_news:
+            report_title = "Review and Media Assessment"
+            summary = f"**Review and Media Assessment**: Based on persisted review sentiment, fake-review analysis, and public news signals for **{company_name}**. The calculated prototype Trust Index is {score_str}. *No complaint, regulatory, or external OSINT evidence was included.*"
+        elif has_reviews:
+            report_title = "Review Analysis Assessment"
+            summary = f"**Review Analysis Assessment**: Based on persisted review sentiment and fake-review analysis for **{company_name}**. The calculated prototype Trust Index is {score_str}.\n\n*No complaint, regulatory, news, or external OSINT evidence was included.*"
+        else:
+            report_title = "Partial Evidence Assessment"
+            summary = f"**Partial Evidence Assessment**: Based on minimal available records for **{company_name}**. *No complaint, regulatory, news, or external OSINT evidence was included.*"
+
+        report_md = f"""# 🛡️ Executive Trust Audit Report: {company_name} ({report_title})
 **Platform**: RitaDrishti-AI Multi-Agent Audit System  
 **Date**: September 2026 | **Classification**: Confidential Enterprise Assessment
 

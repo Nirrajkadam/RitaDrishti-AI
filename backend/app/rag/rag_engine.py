@@ -15,15 +15,20 @@ from backend.app.rag.embeddings import EmbeddingEngine
 from backend.app.rag.vector_store import VectorStoreManager
 
 
+import logging
+
+logger = logging.getLogger(__name__)
+
+
 class RAGUnavailableError(Exception):
     """Domain exception raised when RAG vector search or LLM generation is unavailable."""
     pass
 
 
 class RAGEngine:
-    def __init__(self, ollama_client=None):
-        self.embedding_engine = EmbeddingEngine()
-        self.vector_store = VectorStoreManager()
+    def __init__(self, ollama_client=None, embedding_engine=None, vector_store=None):
+        self.embedding_engine = embedding_engine or EmbeddingEngine()
+        self.vector_store = vector_store or VectorStoreManager()
         self.ollama_model = settings.OLLAMA_MODEL
         self.ollama_base_url = settings.OLLAMA_BASE_URL
         self.ollama_client = ollama_client
@@ -121,18 +126,27 @@ USER QUERY:
 
 EXECUTIVE ANSWER:"""
 
-        # Invoking Ollama API or Fallback Response Engine
+        # Invoking Ollama API or Injected Client
         answer = ""
+        if self.ollama_client is not None:
+            client = self.ollama_client
+        else:
+            try:
+                import ollama
+                client = ollama.Client(host=self.ollama_base_url, timeout=30.0)
+            except Exception as e:
+                logger.error(f"Failed to initialize Ollama client: {e}", exc_info=True)
+                raise RAGUnavailableError("Ollama service unavailable")
+
         try:
-            import ollama
-            client = self.ollama_client or ollama.Client(host=self.ollama_base_url, timeout=30.0)
             response = client.chat(
                 model=self.ollama_model,
                 messages=[{"role": "system", "content": system_prompt}]
             )
             answer = response["message"]["content"]
         except Exception as e:
-            raise RAGUnavailableError(f"Ollama execution failed at {self.ollama_base_url}: {e}")
+            logger.error(f"Ollama execution failed at {self.ollama_base_url}: {e}", exc_info=True)
+            raise RAGUnavailableError(f"Ollama execution failed: {e}")
 
         return {
             "query": query,

@@ -31,16 +31,71 @@ def test_crew_manager_raises_evidence_unavailable_error():
         crew.run_full_audit(empty_evidence)
 
 
-def test_crew_manager_evidence_driven_audit():
+def test_report_with_review_evidence_only():
+    from backend.app.agents.crew_manager import ReviewAnalysisEvidence
     crew = CrewManager()
     evidence = AuditEvidence(
-        company_name="Acme Tech",
-        trust_score=88.5,
-        articles=[{"headline": "Growth", "summary": "Expanded data centers.", "publisher": "Tech Daily"}],
-        complaints=[{"title": "Billing", "description": "Resolved refund.", "resolution_status": "resolved"}],
-        analyses=[{"raw_text": "Good", "cleaned_text": "Good", "sentiment_score": 0.8, "fake_probability": 0.01, "is_suspicious": False}]
+        company_name="Review Only Corp",
+        trust_score=82.4,
+        analyses=[ReviewAnalysisEvidence(raw_text="Great service", cleaned_text="Great service", sentiment_score=0.9, fake_probability=0.02, is_suspicious=False)]
     )
     res = crew.run_full_audit(evidence)
-    assert res["status"] == "Completed"
-    assert "Acme Tech" in res["report_markdown"]
-    assert "88.5" in res["agent_findings"][3]["findings"]
+    report = res["report_markdown"]
+    assert "Review Analysis Assessment" in report
+    assert "No complaint, regulatory, news, or external OSINT evidence was included" in report
+    assert "consumer dispute resolution audit" not in report
+    assert "360-degree" not in report
+
+
+def test_report_with_all_supported_evidence_categories():
+    from backend.app.agents.crew_manager import ReviewAnalysisEvidence, ComplaintEvidence, ArticleEvidence
+    crew = CrewManager()
+    evidence = AuditEvidence(
+        company_name="Full Data Corp",
+        trust_score=91.0,
+        articles=[ArticleEvidence(headline="Expansion", summary="Opened new data center", publisher="TechNews")],
+        complaints=[ComplaintEvidence(title="Billing issue", description="Double billed", severity_level="medium", resolution_status="resolved")],
+        analyses=[ReviewAnalysisEvidence(raw_text="Awesome product", cleaned_text="Awesome product", sentiment_score=0.95, fake_probability=0.01, is_suspicious=False)]
+    )
+    res = crew.run_full_audit(evidence)
+    report = res["report_markdown"]
+    assert "Multi-Source Trust Assessment" in report
+
+
+def test_report_with_reviews_and_complaints():
+    from backend.app.agents.crew_manager import ReviewAnalysisEvidence, ComplaintEvidence
+    crew = CrewManager()
+    evidence = AuditEvidence(
+        company_name="RevComp Corp",
+        trust_score=75.0,
+        complaints=[ComplaintEvidence(title="Issue", description="Resolved", resolution_status="resolved")],
+        analyses=[ReviewAnalysisEvidence(raw_text="Good", cleaned_text="Good", sentiment_score=0.8, fake_probability=0.01, is_suspicious=False)]
+    )
+    res = crew.run_full_audit(evidence)
+    assert "Review and Complaint Assessment" in res["report_markdown"]
+
+
+def test_report_with_reviews_and_news():
+    from backend.app.agents.crew_manager import ReviewAnalysisEvidence, ArticleEvidence
+    crew = CrewManager()
+    evidence = AuditEvidence(
+        company_name="RevNews Corp",
+        trust_score=78.0,
+        articles=[ArticleEvidence(headline="News", summary="Sum", publisher="Pub")],
+        analyses=[ReviewAnalysisEvidence(raw_text="Good", cleaned_text="Good", sentiment_score=0.8, fake_probability=0.01, is_suspicious=False)]
+    )
+    res = crew.run_full_audit(evidence)
+    assert "Review and Media Assessment" in res["report_markdown"]
+
+
+def test_bounded_evidence_validation():
+    from pydantic import ValidationError
+    from backend.app.agents.crew_manager import ReviewAnalysisEvidence
+
+    # Valid bounds pass
+    valid_ev = ReviewAnalysisEvidence(raw_text="Good", cleaned_text="Good", sentiment_score=0.5, fake_probability=0.1, is_suspicious=False)
+    assert valid_ev.fake_probability == 0.1
+
+    # Fake probability out of bounds [0.0, 1.0] raises ValidationError
+    with pytest.raises(ValidationError):
+        ReviewAnalysisEvidence(raw_text="Bad", cleaned_text="Bad", sentiment_score=0.0, fake_probability=1.5, is_suspicious=True)

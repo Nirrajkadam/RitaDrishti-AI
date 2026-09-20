@@ -67,3 +67,39 @@ def test_rag_engine_index_company_knowledge():
             news=[{"headline": "Expansion", "summary": "New infrastructure.", "publisher": "TechNews"}]
         )
         assert len(rag.vector_store.documents) > 0
+
+
+def test_successful_injected_rag_client():
+    from backend.app.rag.rag_engine import RAGEngine
+
+    class FakeEmbeddingEngine:
+        def generate_embeddings(self, texts):
+            if isinstance(texts, str):
+                return [[0.1] * 384]
+            return [[0.1] * 384 for _ in texts]
+
+    class FakeOllamaClient:
+        def chat(self, model, messages):
+            return {"message": {"content": "Grounded answer: Acme Cloud has excellent uptime."}}
+
+    rag = RAGEngine(ollama_client=FakeOllamaClient(), embedding_engine=FakeEmbeddingEngine())
+    res = rag.generate_rag_response("What are Acme Cloud strengths?")
+    assert res["answer"] == "Grounded answer: Acme Cloud has excellent uptime."
+
+
+def test_rag_timeout_error_handling():
+    from backend.app.rag.rag_engine import RAGEngine, RAGUnavailableError
+
+    class FakeEmbeddingEngine:
+        def generate_embeddings(self, texts):
+            if isinstance(texts, str):
+                return [[0.1] * 384]
+            return [[0.1] * 384 for _ in texts]
+
+    class TimeoutOllamaClient:
+        def chat(self, model, messages):
+            raise TimeoutError("Ollama request timed out after 30 seconds")
+
+    rag = RAGEngine(ollama_client=TimeoutOllamaClient(), embedding_engine=FakeEmbeddingEngine())
+    with pytest.raises(RAGUnavailableError):
+        rag.generate_rag_response("What are Acme Cloud strengths?")
