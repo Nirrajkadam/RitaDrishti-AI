@@ -117,13 +117,19 @@ class ReportAgent:
             summary = f"**Review and Complaint Assessment**: Based on persisted review sentiment, fake-review detection, and logged consumer complaint records for **{company_name}**. The calculated prototype Trust Index is {score_str}. *No news, regulatory, or external OSINT evidence was included.*"
         elif has_reviews and has_news:
             report_title = "Review and Media Assessment"
-            summary = f"**Review and Media Assessment**: Based on persisted review sentiment, fake-review analysis, and public news signals for **{company_name}**. The calculated prototype Trust Index is {score_str}. *No complaint, regulatory, or external OSINT evidence was included.*"
+            summary = f"**Review and Media Assessment**: Based on persisted review sentiment, fake-review analysis, and public news signals for **{company_name}**. The calculated prototype Trust Index is {score_str}. *No complaint or regulatory evidence was included.*"
         elif has_reviews:
             report_title = "Review Analysis Assessment"
             summary = f"**Review Analysis Assessment**: Based on persisted review sentiment and fake-review analysis for **{company_name}**. The calculated prototype Trust Index is {score_str}.\n\n*No complaint, regulatory, news, or external OSINT evidence was included.*"
         else:
             report_title = "Partial Evidence Assessment"
             summary = f"**Partial Evidence Assessment**: Based on minimal available records for **{company_name}**. *No complaint, regulatory, news, or external OSINT evidence was included.*"
+
+        recommendations_text = "1. **Maintain Transparency**: Continue active verification of customer support channels.\n2. **Monitor Fraud Signals**: Regularly audit third-party rating portals for automated spam reviews."
+        if has_complaints:
+            recommendations_text += "\n3. **Escalate Dispute Resolution**: Resolve pending high-severity consumer complaints within 14 business days."
+        elif has_news:
+            recommendations_text += "\n3. **Media Monitoring**: Track external news coverage and brand reputation signals."
 
         report_md = f"""# 🛡️ Executive Trust Audit Report: {company_name} ({report_title})
 **Platform**: RitaDrishti-AI Multi-Agent Audit System  
@@ -142,12 +148,10 @@ class ReportAgent:
         for output in agent_outputs:
             report_md += f"### 🤖 {output['agent']}\n- {output['findings']}\n\n"
 
-        report_md += """---
+        report_md += f"""---
 
 ## Key Recommendations for Stakeholders
-1. **Maintain Transparency**: Continue active verification of customer support channels.
-2. **Monitor Fraud Signals**: Regularly audit third-party rating portals for automated spam reviews.
-3. **Escalate Dispute Resolution**: Resolve pending high-severity consumer complaints within 14 business days.
+{recommendations_text}
 
 ---
 *Report Generated Automatically by RitaDrishti CrewAI Agent Fleet.*

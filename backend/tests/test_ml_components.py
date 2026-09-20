@@ -81,6 +81,41 @@ def test_sentiment_engine():
     assert empty["label"] == "neutral"
 
 
+def test_sentiment_engine_transformer_hybrid_branch():
+    class FakeClassifier:
+        def __call__(self, text):
+            return [[{"label": "POSITIVE", "score": 0.95}, {"label": "NEGATIVE", "score": 0.05}]]
+
+    engine = SentimentEngine()
+    engine.classifier = FakeClassifier()
+    engine.transformer_enabled = True
+
+    res = engine.analyze_sentiment("Superb product performance and reliability!")
+    assert res["label"] == "positive"
+    assert "Hybrid" in res["method"]
+
+
+def test_fake_review_engine_edge_cases(tmp_path):
+    from backend.app.ml.fake_review_engine import FakeReviewEngine
+    from backend.app.core.exceptions import ServiceUnavailableError
+
+    engine = FakeReviewEngine()
+
+    # Empty text style features
+    empty_feats = engine.extract_style_features("")
+    assert empty_feats["word_count"] == 0.0
+
+    # Invalid checksum
+    model_file = tmp_path / "fake_review_model.joblib"
+    checksum_file = tmp_path / "fake_review_model.joblib.sha256"
+    model_file.write_bytes(b"dummy_model_bytes")
+    checksum_file.write_text("invalid_checksum_hash")
+
+    with pytest.raises(ServiceUnavailableError) as exc:
+        FakeReviewEngine(model_dir=str(tmp_path))
+    assert exc.value.code == "MODEL_ARTIFACT_INVALID"
+
+
 def test_model_training_pipeline_execution(tmp_path):
     df = build_benchmark_dataset()
     assert len(df) > 0
@@ -97,3 +132,4 @@ def test_model_training_pipeline_execution(tmp_path):
     assert (tmp_path / "fake_review_model.joblib").exists()
     assert (tmp_path / "fake_review_model.joblib.sha256").exists()
     assert (tmp_path / "MODEL_CARD.md").exists()
+

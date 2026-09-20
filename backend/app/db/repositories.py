@@ -4,7 +4,7 @@ Provides transactional data access methods for Companies, Reviews, AI Analyses, 
 """
 
 import uuid
-from typing import Optional, List, Dict, Any, Tuple
+from typing import Optional, List, Dict, Any, Tuple, Union
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
@@ -34,7 +34,8 @@ class UserRepository:
             role=role
         )
         self.session.add(user)
-        await self.session.flush()
+        await self.session.commit()
+        await self.session.refresh(user)
         return user
 
     async def get_user_by_username(self, username: str) -> Optional[UserModel]:
@@ -47,7 +48,9 @@ class UserRepository:
         result = await self.session.execute(stmt)
         return result.scalar_one_or_none()
 
-    async def get_by_id(self, user_id: uuid.UUID) -> Optional[UserModel]:
+    async def get_by_id(self, user_id: Union[uuid.UUID, str]) -> Optional[UserModel]:
+        if isinstance(user_id, str):
+            user_id = uuid.UUID(user_id)
         stmt = select(UserModel).where(UserModel.user_id == user_id)
         result = await self.session.execute(stmt)
         return result.scalar_one_or_none()
@@ -73,10 +76,13 @@ class CompanyRepository:
             country_code=country_code.upper()
         )
         self.session.add(company)
-        await self.session.flush()
+        await self.session.commit()
+        await self.session.refresh(company)
         return company
 
-    async def get_by_id(self, company_id: uuid.UUID) -> Optional[CompanyModel]:
+    async def get_by_id(self, company_id: Union[uuid.UUID, str]) -> Optional[CompanyModel]:
+        if isinstance(company_id, str):
+            company_id = uuid.UUID(company_id)
         stmt = select(CompanyModel).where(CompanyModel.company_id == company_id)
         result = await self.session.execute(stmt)
         return result.scalar_one_or_none()
@@ -139,7 +145,9 @@ class ReviewRepository:
             model_version=model_version
         )
         self.session.add(analysis)
-        await self.session.flush()
+        await self.session.commit()
+        await self.session.refresh(review)
+        await self.session.refresh(analysis)
 
         return review, analysis
 

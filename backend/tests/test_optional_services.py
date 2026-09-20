@@ -45,6 +45,7 @@ def test_report_with_review_evidence_only():
     assert "No complaint, regulatory, news, or external OSINT evidence was included" in report
     assert "consumer dispute resolution audit" not in report
     assert "360-degree" not in report
+    assert "Escalate Dispute Resolution" not in report
 
 
 def test_report_with_all_supported_evidence_categories():
@@ -60,6 +61,7 @@ def test_report_with_all_supported_evidence_categories():
     res = crew.run_full_audit(evidence)
     report = res["report_markdown"]
     assert "Multi-Source Trust Assessment" in report
+    assert "Escalate Dispute Resolution" in report
 
 
 def test_report_with_reviews_and_complaints():
@@ -73,6 +75,7 @@ def test_report_with_reviews_and_complaints():
     )
     res = crew.run_full_audit(evidence)
     assert "Review and Complaint Assessment" in res["report_markdown"]
+    assert "Escalate Dispute Resolution" in res["report_markdown"]
 
 
 def test_report_with_reviews_and_news():
@@ -86,6 +89,7 @@ def test_report_with_reviews_and_news():
     )
     res = crew.run_full_audit(evidence)
     assert "Review and Media Assessment" in res["report_markdown"]
+    assert "No complaint or regulatory evidence was included" in res["report_markdown"]
 
 
 def test_bounded_evidence_validation():

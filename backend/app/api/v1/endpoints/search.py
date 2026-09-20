@@ -4,7 +4,7 @@ RitaDrishti-AI — Global & Natural Language Search API Endpoint (Database Conne
 
 from fastapi import APIRouter, Depends, Query
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy import select, func, Integer
+from sqlalchemy import select, func, Integer, case
 from typing import List, Dict, Any, Optional
 
 from backend.app.core.database import get_db
@@ -64,8 +64,8 @@ async def natural_language_search(
                 func.count(AIAnalysisModel.analysis_id),
                 func.avg(AIAnalysisModel.sentiment_score),
                 func.avg(AIAnalysisModel.fake_probability),
-                func.sum(func.cast(AIAnalysisModel.is_suspicious, Integer)),
-                func.sum(func.cast(AIAnalysisModel.sentiment_label == "negative", Integer))
+                func.sum(case((AIAnalysisModel.is_suspicious == True, 1), else_=0)),
+                func.sum(case((AIAnalysisModel.sentiment_label == "negative", 1), else_=0))
             )
             .where(AIAnalysisModel.company_id == c.company_id)
         )

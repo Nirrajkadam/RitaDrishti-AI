@@ -57,16 +57,22 @@ def test_embeddings_unsupported_model_raises():
 
 
 def test_rag_engine_index_company_knowledge():
-    rag = RAGEngine()
-    if rag.embedding_engine.model:
-        rag.index_company_knowledge(
-            company_id="11111111-1111-1111-1111-111111111111",
-            company_name="Acme Cloud",
-            reviews=[{"raw_text": "Great service!", "source": "Trustpilot"}],
-            complaints=[{"title": "Billing", "description": "Double billed.", "source": "BBB"}],
-            news=[{"headline": "Expansion", "summary": "New infrastructure.", "publisher": "TechNews"}]
-        )
-        assert len(rag.vector_store.documents) > 0
+    class FakeEmbeddingEngine:
+        def generate_embeddings(self, texts):
+            if isinstance(texts, str):
+                return [[0.1] * 384]
+            return [[0.1] * 384 for _ in texts]
+
+    rag = RAGEngine(embedding_engine=FakeEmbeddingEngine())
+    rag.index_company_knowledge(
+        company_id="11111111-1111-1111-1111-111111111111",
+        company_name="Acme Cloud",
+        reviews=[{"raw_text": "Great service!", "source": "Trustpilot"}],
+        complaints=[{"title": "Billing", "description": "Double billed.", "source": "BBB"}],
+        news=[{"headline": "Expansion", "summary": "New infrastructure.", "publisher": "TechNews"}]
+    )
+    assert len(rag.vector_store.documents) == 3
+
 
 
 def test_successful_injected_rag_client():

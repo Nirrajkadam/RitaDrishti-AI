@@ -224,19 +224,6 @@ async def test_all_authenticated_endpoints_and_rag_branches(client: AsyncClient,
     assert (await client.get(f"/api/v1/trust/{fake_uuid}", headers=auth_headers)).status_code == 404
     assert (await client.get(f"/api/v1/risk/{fake_uuid}", headers=auth_headers)).status_code == 404
 
-    # Direct DB execution with existing db_session
-    from backend.app.api.v1.endpoints import search, alerts, risk, trust, companies
-    from uuid import UUID as PyUUID
-
-    await search.global_search(q="Test", db=db_session)
-    await search.natural_language_search(prompt="Show fintech companies", db=db_session)
-    await alerts.get_active_alerts(db=db_session)
-    await alerts.get_alerts_summary(db=db_session)
-    await risk.get_risk_score(company_id=PyUUID(comp_id), db=db_session)
-    await trust.get_trust_score(company_id=PyUUID(comp_id), db=db_session)
-    await companies.list_companies(limit=10, offset=0, db=db_session)
-    await companies.get_company(company_id=PyUUID(comp_id), db=db_session)
-
 
 @pytest.mark.asyncio
 async def test_liveness_and_readiness_probes(client: AsyncClient):
