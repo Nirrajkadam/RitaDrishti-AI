@@ -40,6 +40,6 @@ async def test_search_endpoint_returns_unrated_state_for_new_company(client: Asy
     assert nl_resp.status_code == 200
     results = nl_resp.json()["results"]
     matched = next((r for r in results if r["company_id"] == comp_id), None)
-    if matched:
-        assert matched["trust_score"] is None
-        assert matched["risk_level"] == "UNRATED"
+    assert matched is not None
+    assert matched["trust_score"] is None
+    assert matched["risk_level"] == "UNRATED"

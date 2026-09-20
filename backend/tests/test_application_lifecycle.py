@@ -134,10 +134,27 @@ async def test_enabled_subsystem_flags_error_handling(client: AsyncClient, auth_
         assert chat_resp.status_code == 503
         assert chat_resp.json()["error"]["code"] == "RAG_SERVICE_UNAVAILABLE"
 
-        # Reports when enabled without evidence should return 503 evidence unavailable
-        report_resp = await client.post("/api/v1/reports/generate", json={"company_name": "NonExistentCompany"}, headers=auth_headers)
-        assert report_resp.status_code == 503
-        assert report_resp.json()["error"]["code"] == "CREWAI_EVIDENCE_UNAVAILABLE"
+        # Reports when enabled without evidence should return 503 evidence unavailable (non-existent company returns 404)
+        report_404 = await client.post("/api/v1/reports/generate", json={"company_id": str(uuid4())}, headers=auth_headers)
+        assert report_404.status_code == 404
+
+        # Create company + analyze review to generate real DB evidence
+        c_res = await client.post("/api/v1/companies/", json={"name": "Report Evidence Corp", "domain": f"repevid_{uuid4().hex[:6]}.com", "industry": "SaaS"}, headers=auth_headers)
+        c_id = c_res.json()["company_id"]
+
+        # Reports when company has no reviews returns 503 evidence unavailable
+        report_no_evidence = await client.post("/api/v1/reports/generate", json={"company_id": c_id}, headers=auth_headers)
+        assert report_no_evidence.status_code == 503
+        assert report_no_evidence.json()["error"]["code"] == "CREWAI_EVIDENCE_UNAVAILABLE"
+
+        # Add review with ML analysis
+        await client.post("/api/v1/reviews/analyze", json={"company_id": c_id, "source": "G2", "rating": 5.0, "raw_text": "Outstanding SaaS platform, fast response times."}, headers=auth_headers)
+
+        # Reports with valid DB evidence returns 200 report markdown
+        report_ok = await client.post("/api/v1/reports/generate", json={"company_id": c_id}, headers=auth_headers)
+        assert report_ok.status_code == 200
+        assert report_ok.json()["company_name"] == "Report Evidence Corp"
+        assert "report_markdown" in report_ok.json()
 
     finally:
         settings.ENABLE_OLLAMA = old_ollama
@@ -146,7 +163,7 @@ async def test_enabled_subsystem_flags_error_handling(client: AsyncClient, auth_
 
 
 @pytest.mark.asyncio
-async def test_all_authenticated_endpoints_and_rag_branches(client: AsyncClient, auth_headers: dict, db_session: AsyncSession):
+async def test_all_authenticated_endpoints_and_rag_branches(client: AsyncClient, auth_headers: dict, db_session: AsyncSession, tmp_path):
     # 1. Create company
     domain = f"testcorp_{uuid4().hex[:6]}.com"
     c_resp = await client.post("/api/v1/companies/", json={
@@ -249,5 +266,20 @@ async def test_all_authenticated_endpoints_and_rag_branches(client: AsyncClient,
     s_eng.analyze_sentiment("Terrible experience. Payments failed and zero support.")
 
     model, metrics = train_and_evaluate_model()
-    export_artifact_and_model_card(model, metrics)
+    export_artifact_and_model_card(model, metrics, output_dir=tmp_path)
+
+
+@pytest.mark.asyncio
+async def test_liveness_and_readiness_probes(client: AsyncClient):
+    root_res = await client.get("/")
+    assert root_res.status_code == 200
+    assert root_res.json()["status"] == "online"
+
+    health_res = await client.get("/healthz")
+    assert health_res.status_code == 200
+    assert health_res.json()["status"] == "ok"
+
+    ready_res = await client.get("/readyz")
+    assert ready_res.status_code == 200
+    assert ready_res.json()["status"] == "ready"
 

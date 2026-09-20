@@ -21,11 +21,12 @@ class RAGUnavailableError(Exception):
 
 
 class RAGEngine:
-    def __init__(self):
+    def __init__(self, ollama_client=None):
         self.embedding_engine = EmbeddingEngine()
         self.vector_store = VectorStoreManager()
         self.ollama_model = settings.OLLAMA_MODEL
         self.ollama_base_url = settings.OLLAMA_BASE_URL
+        self.ollama_client = ollama_client
 
     def chunk_text(self, text: str, chunk_size: int = 500, overlap: int = 64) -> List[str]:
         """Splits long document text into overlapping chunks."""
@@ -124,7 +125,8 @@ EXECUTIVE ANSWER:"""
         answer = ""
         try:
             import ollama
-            response = ollama.chat(
+            client = self.ollama_client or ollama.Client(host=self.ollama_base_url, timeout=30.0)
+            response = client.chat(
                 model=self.ollama_model,
                 messages=[{"role": "system", "content": system_prompt}]
             )

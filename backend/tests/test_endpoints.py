@@ -5,6 +5,7 @@ Tests real database queries and feature-gated 503 error responses.
 
 import pytest
 from httpx import AsyncClient
+from uuid import uuid4
 from backend.app.db.repositories import CompanyRepository, ReviewRepository, UserRepository
 
 
@@ -70,6 +71,6 @@ async def test_disabled_chat_endpoint_returns_503(client: AsyncClient):
 
 @pytest.mark.asyncio
 async def test_disabled_reports_endpoint_returns_503(client: AsyncClient, auth_headers: dict):
-    resp = await client.post("/api/v1/reports/generate", json={"company_name": "Acme Cloud"}, headers=auth_headers)
+    resp = await client.post("/api/v1/reports/generate", json={"company_id": str(uuid4())}, headers=auth_headers)
     assert resp.status_code == 503
     assert resp.json()["error"]["code"] == "CREWAI_DISABLED"

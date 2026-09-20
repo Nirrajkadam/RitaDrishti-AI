@@ -110,3 +110,12 @@ async def test_protected_route_without_token(client: AsyncClient):
     resp = await client.post("/api/v1/companies/", json=company_payload)
     assert resp.status_code == 401
     assert resp.json()["error"]["code"] in ("UNAUTHORIZED", "AUTHENTICATION_FAILED")
+
+
+@pytest.mark.asyncio
+async def test_get_current_authenticated_user_endpoint(client: AsyncClient, auth_headers: dict):
+    resp = await client.get("/api/v1/auth/me", headers=auth_headers)
+    assert resp.status_code == 200
+    data = resp.json()
+    assert "user_id" in data
+    assert "username" in data

@@ -81,7 +81,7 @@ def test_sentiment_engine():
     assert empty["label"] == "neutral"
 
 
-def test_model_training_pipeline_execution():
+def test_model_training_pipeline_execution(tmp_path):
     df = build_benchmark_dataset()
     assert len(df) > 0
     feats = extract_style_features("TEST REVIEW TEXT", 5.0)
@@ -91,3 +91,9 @@ def test_model_training_pipeline_execution():
     assert pipeline is not None
     assert "accuracy" in metrics
     assert "f1_score" in metrics
+
+    from backend.app.ml.train_fake_review_model import export_artifact_and_model_card
+    export_artifact_and_model_card(pipeline, metrics, output_dir=tmp_path)
+    assert (tmp_path / "fake_review_model.joblib").exists()
+    assert (tmp_path / "fake_review_model.joblib.sha256").exists()
+    assert (tmp_path / "MODEL_CARD.md").exists()

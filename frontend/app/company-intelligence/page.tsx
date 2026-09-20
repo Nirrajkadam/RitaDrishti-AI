@@ -1,14 +1,15 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { MapPin, Sparkles, Loader2, CheckCircle, AlertTriangle, AlertCircle } from "lucide-react";
+import { MapPin, Sparkles, Loader2, CheckCircle, AlertTriangle, AlertCircle, LogIn, LogOut, Plus, Building2 } from "lucide-react";
 import { PageHeader } from "@/components/dashboard/page-header";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { DataTable, type Column } from "@/components/dashboard/data-table";
-import { Progress } from "@/components/ui/progress";
-import { apiFetch, setAuthToken, getAuthToken } from "@/lib/api";
+import { apiFetch, setAuthToken, getAuthToken, removeAuthToken } from "@/lib/api";
+import { AuthModal } from "@/components/auth-modal";
+import { CreateCompanyModal } from "@/components/create-company-modal";
 
 interface CompanyResponse {
   company_id: string;
@@ -30,75 +31,93 @@ export default function CompanyIntelligencePage() {
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [authenticatedUser, setAuthenticatedUser] = useState<string | null>(null);
 
-  // Authenticate & load company directory on mount
-  useEffect(() => {
-    async function initSessionAndCompanies() {
-      try {
-        let token = getAuthToken();
-        if (!token) {
-          const demoUsername = `analyst_${Date.now()}`;
-          const demoPassword = "SecurePassword123!";
+  // Modals state
+  const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
+  const [isCreateCompanyModalOpen, setIsCreateCompanyModalOpen] = useState(false);
 
-          try {
-            await apiFetch("/api/v1/auth/register", {
-              method: "POST",
-              body: JSON.stringify({
-                email: `${demoUsername}@ritadrishti.ai`,
-                username: demoUsername,
-                password: demoPassword,
-                full_name: "Auditor Analyst"
-              })
-            });
-          } catch (regErr) {
-            // Fallback if already registered
-          }
-
-          const loginRes: any = await apiFetch("/api/v1/auth/login", {
-            method: "POST",
-            body: JSON.stringify({
-              username: demoUsername,
-              password: demoPassword
-            })
-          });
-
-          if (loginRes?.access_token) {
-            setAuthToken(loginRes.access_token);
-            token = loginRes.access_token;
-            setAuthenticatedUser(demoUsername);
-          }
-        } else {
-          setAuthenticatedUser("Active Auditor");
-        }
-
-        // Fetch Companies from backend DB
-        const companyList = await apiFetch<CompanyResponse[]>("/api/v1/companies/");
-        if (companyList && companyList.length > 0) {
-          setCompanies(companyList);
+  // Load companies from backend DB
+  async function fetchCompanies() {
+    try {
+      const companyList = await apiFetch<CompanyResponse[]>("/api/v1/companies/");
+      if (companyList && companyList.length > 0) {
+        setCompanies(companyList);
+        if (!selectedCompanyId) {
           setSelectedCompanyId(companyList[0].company_id);
-        } else {
-          // Create initial company record in DB
-          const newCompany = await apiFetch<CompanyResponse>("/api/v1/companies/", {
-            method: "POST",
-            body: JSON.stringify({
-              name: "Acme Cloud Solutions",
-              domain: `acmecloud_${Date.now()}.io`,
-              industry: "Cloud SaaS",
-              description: "Enterprise SaaS provider offering cloud infrastructure & AI middleware."
-            })
-          });
-          setCompanies([newCompany]);
-          setSelectedCompanyId(newCompany.company_id);
         }
-      } catch (err: any) {
-        setErrorMessage(err.message || "Session initialization failed.");
+      } else {
+        setCompanies([]);
+        setSelectedCompanyId("");
+      }
+    } catch (err: any) {
+      setErrorMessage(err.message || "Failed to load company directory.");
+    }
+  }
+
+  // Check auth session on mount
+  useEffect(() => {
+    async function checkSession() {
+      const token = getAuthToken();
+      if (!token) {
+        setAuthenticatedUser(null);
+        setIsAuthModalOpen(true);
+        return;
+      }
+
+      try {
+        const user: any = await apiFetch("/api/v1/auth/me");
+        setAuthenticatedUser(user.username || user.email || "Authenticated Auditor");
+        await fetchCompanies();
+      } catch (err) {
+        removeAuthToken();
+        setAuthenticatedUser(null);
+        setIsAuthModalOpen(true);
       }
     }
 
-    initSessionAndCompanies();
+    checkSession();
+
+    function handleUnauthorized() {
+      setAuthenticatedUser(null);
+      setIsAuthModalOpen(true);
+    }
+
+    if (typeof window !== "undefined") {
+      window.addEventListener("ritadrishti_unauthorized", handleUnauthorized);
+      return () => window.removeEventListener("ritadrishti_unauthorized", handleUnauthorized);
+    }
   }, []);
 
+  function handleLogout() {
+    removeAuthToken();
+    setAuthenticatedUser(null);
+    setCompanies([]);
+    setSelectedCompanyId("");
+    setMlResult(null);
+    setIsAuthModalOpen(true);
+  }
+
+  function handleAuthenticated(username: string) {
+    setAuthenticatedUser(username);
+    setIsAuthModalOpen(false);
+    fetchCompanies();
+  }
+
+  function handleCompanyCreated(newCompany: CompanyResponse) {
+    setCompanies((prev) => [newCompany, ...prev]);
+    setSelectedCompanyId(newCompany.company_id);
+  }
+
   async function analyzeReview() {
-    if (!reviewInput.trim() || analyzing || !selectedCompanyId) return;
+    if (!reviewInput.trim() || analyzing) return;
+    if (!authenticatedUser) {
+      setIsAuthModalOpen(true);
+      return;
+    }
+    if (!selectedCompanyId) {
+      setErrorMessage("Please register or select a target company domain first.");
+      return;
+    }
+
     setAnalyzing(true);
     setErrorMessage(null);
     setMlResult(null);
@@ -111,7 +130,7 @@ export default function CompanyIntelligencePage() {
           source: "Trustpilot",
           rating: 5.0,
           raw_text: reviewInput,
-          reviewer_name: "Verified Auditor"
+          reviewer_name: authenticatedUser
         })
       });
 
@@ -165,35 +184,40 @@ export default function CompanyIntelligencePage() {
         description="Authenticated vertical workflow: PII sanitization, joblib model inference, and atomic DB persistence."
       />
 
-      <div className="mx-6 mb-3 p-3 rounded bg-amber-950/40 border border-amber-800/60 text-[12px] flex items-center justify-between">
+      {/* Explicit Auth Status Banner */}
+      <div className="mx-6 mb-3 p-3 rounded bg-slate-900 border border-slate-800 text-[12px] flex items-center justify-between">
         <div className="flex items-center gap-2">
-          <Badge variant="watch">Development Prototype Auth</Badge>
-          <span className="text-amber-200">
-            Authenticated as: <strong className="text-emerald-400">{authenticatedUser || "Guest"}</strong> (JWT stored in client state via <code>POST /api/v1/auth/login</code>)
-          </span>
+          {authenticatedUser ? (
+            <>
+              <Badge variant="sight">Authenticated Auditor</Badge>
+              <span className="text-slate-300">
+                Logged in as: <strong className="text-emerald-400">{authenticatedUser}</strong>
+              </span>
+            </>
+          ) : (
+            <>
+              <Badge variant="watch">Unauthenticated</Badge>
+              <span className="text-amber-300">Please sign in or register an account to access company auditing workflows.</span>
+            </>
+          )}
         </div>
-        <Button size="sm" variant="outline" onClick={async () => {
-          const demoUsername = `analyst_${Date.now()}`;
-          const demoPassword = "SecurePassword123!";
-          try {
-            await apiFetch("/api/v1/auth/register", {
-              method: "POST",
-              body: JSON.stringify({ email: `${demoUsername}@ritadrishti.ai`, username: demoUsername, password: demoPassword, full_name: "Auditor Analyst" })
-            });
-            const loginRes: any = await apiFetch("/api/v1/auth/login", {
-              method: "POST",
-              body: JSON.stringify({ username: demoUsername, password: demoPassword })
-            });
-            if (loginRes?.access_token) {
-              setAuthToken(loginRes.access_token);
-              setAuthenticatedUser(demoUsername);
-            }
-          } catch (e: any) {
-            setErrorMessage(e.message || "Authentication failed");
-          }
-        }}>
-          Re-Authenticate Demo Auditor
-        </Button>
+
+        <div className="flex items-center gap-2">
+          {authenticatedUser ? (
+            <>
+              <Button size="sm" variant="outline" onClick={() => setIsCreateCompanyModalOpen(true)}>
+                <Plus className="h-3.5 w-3.5 mr-1" /> Register New Company
+              </Button>
+              <Button size="sm" variant="destructive" onClick={handleLogout}>
+                <LogOut className="h-3.5 w-3.5 mr-1" /> Log Out
+              </Button>
+            </>
+          ) : (
+            <Button size="sm" className="bg-sky-600 hover:bg-sky-500 text-white" onClick={() => setIsAuthModalOpen(true)}>
+              <LogIn className="h-3.5 w-3.5 mr-1" /> Sign In / Register
+            </Button>
+          )}
+        </div>
       </div>
 
       {errorMessage && (
@@ -206,12 +230,32 @@ export default function CompanyIntelligencePage() {
       <div className="grid grid-cols-1 xl:grid-cols-3 gap-3 px-6">
         <Card className="xl:col-span-2">
           <CardHeader>
-            <div>
-              <CardTitle>Monitored Corporate Directory</CardTitle>
-              <CardDescription>Real DB records fetched from /api/v1/companies/</CardDescription>
+            <div className="flex items-center justify-between">
+              <div>
+                <CardTitle>Monitored Corporate Directory</CardTitle>
+                <CardDescription>Real DB records fetched from /api/v1/companies/</CardDescription>
+              </div>
+              {authenticatedUser && (
+                <Button size="sm" variant="outline" onClick={() => setIsCreateCompanyModalOpen(true)}>
+                  <Building2 className="h-3.5 w-3.5 mr-1" /> Add Company
+                </Button>
+              )}
             </div>
           </CardHeader>
-          <DataTable columns={columns} rows={companies} rowKey={(r) => r.company_id} />
+
+          {companies.length > 0 ? (
+            <DataTable columns={columns} rows={companies} rowKey={(r) => r.company_id} />
+          ) : (
+            <CardContent className="py-12 text-center text-slate-400 text-sm">
+              <Building2 className="h-10 w-10 text-slate-600 mx-auto mb-3" />
+              <p>No target companies currently registered in database.</p>
+              {authenticatedUser && (
+                <Button size="sm" className="mt-3 bg-sky-600 hover:bg-sky-500 text-white" onClick={() => setIsCreateCompanyModalOpen(true)}>
+                  <Plus className="h-3.5 w-3.5 mr-1" /> Create First Target Company
+                </Button>
+              )}
+            </CardContent>
+          )}
         </Card>
 
         <Card>
@@ -230,7 +274,7 @@ export default function CompanyIntelligencePage() {
               placeholder="Paste raw review text to inspect..."
               className="w-full rounded-sm bg-graphite-800 border border-line p-2.5 text-[12px] text-ink-100 placeholder:text-ink-600 focus:outline-none focus:ring-1 focus:ring-signal"
             />
-            <Button size="sm" onClick={analyzeReview} disabled={analyzing || !selectedCompanyId} className="w-full">
+            <Button size="sm" onClick={analyzeReview} disabled={analyzing || !selectedCompanyId || !authenticatedUser} className="w-full">
               {analyzing ? <Loader2 className="h-3.5 w-3.5 animate-spin mr-1" /> : <Sparkles className="h-3.5 w-3.5 mr-1" />}
               {analyzing ? "Sanitizing PII & Running ML Model..." : "Analyze & Persist Review"}
             </Button>
@@ -271,6 +315,19 @@ export default function CompanyIntelligencePage() {
           </CardContent>
         </Card>
       </div>
+
+      {/* Modals */}
+      <AuthModal
+        isOpen={isAuthModalOpen}
+        onClose={() => setIsAuthModalOpen(false)}
+        onAuthenticated={handleAuthenticated}
+      />
+
+      <CreateCompanyModal
+        isOpen={isCreateCompanyModalOpen}
+        onClose={() => setIsCreateCompanyModalOpen(false)}
+        onCompanyCreated={handleCompanyCreated}
+      />
     </div>
   );
 }

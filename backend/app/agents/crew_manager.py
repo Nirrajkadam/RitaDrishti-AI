@@ -8,8 +8,8 @@ Coordinates 5 specialized AI Agents for autonomous corporate trust & risk auditi
 5. Report Agent (Executive Briefing & Report Synthesizer)
 """
 
-from typing import Dict, Any, List, Optional
-from pydantic import BaseModel
+from typing import Dict, Any, List, Optional, Literal
+from pydantic import BaseModel, Field
 
 
 class EvidenceUnavailableError(Exception):
@@ -26,23 +26,23 @@ class ArticleEvidence(BaseModel):
 class ComplaintEvidence(BaseModel):
     title: str
     description: str
-    resolution_status: str = "unresolved"
+    resolution_status: Literal["resolved", "unresolved", "pending"] = "unresolved"
 
 
 class ReviewAnalysisEvidence(BaseModel):
-    raw_text: str
+    raw_text: str = ""
     cleaned_text: str
-    sentiment_score: float
-    fake_probability: float
+    sentiment_score: float = Field(ge=-1.0, le=1.0)
+    fake_probability: float = Field(ge=0.0, le=1.0)
     is_suspicious: bool
 
 
 class AuditEvidence(BaseModel):
     company_name: str
-    trust_score: Optional[float] = None
-    articles: List[ArticleEvidence] = []
-    complaints: List[ComplaintEvidence] = []
-    analyses: List[ReviewAnalysisEvidence] = []
+    trust_score: Optional[float] = Field(None, ge=0.0, le=100.0)
+    articles: List[ArticleEvidence] = Field(default_factory=list)
+    complaints: List[ComplaintEvidence] = Field(default_factory=list)
+    analyses: List[ReviewAnalysisEvidence] = Field(default_factory=list)
 
 
 class ResearchAgent:
@@ -102,7 +102,13 @@ class ReportAgent:
     """
     Responsibilities: Synthesizes inputs from Research, Risk, Compliance, and Trust Agents into a consolidated executive markdown report.
     """
-    def generate_report(self, company_name: str, agent_outputs: List[Dict[str, Any]]) -> str:
+    def generate_report(self, company_name: str, agent_outputs: List[Dict[str, Any]], evidence: AuditEvidence = None) -> str:
+        has_full_evidence = evidence is not None and len(evidence.analyses) > 0 and evidence.trust_score is not None
+        if has_full_evidence:
+            summary = f"RitaDrishti Multi-Agent System completed a comprehensive 360-degree assessment of **{company_name}**. The company has been assigned a verified **Trust Index** of **{evidence.trust_score:.1f}/100** based on real-time sentiment signals, fake review detection metrics, and consumer dispute resolution audits."
+        else:
+            summary = f"RitaDrishti Multi-Agent System performed a **Partial Evidence Assessment** for **{company_name}** based on available ingested records. *Note: A full 360-degree assessment and verified Trust Index require direct review dataset ingestion.*"
+
         report_md = f"""# 🛡️ Executive Trust Audit Report: {company_name}
 **Platform**: RitaDrishti-AI Multi-Agent Audit System  
 **Date**: September 2026 | **Classification**: Confidential Enterprise Assessment
@@ -110,7 +116,7 @@ class ReportAgent:
 ---
 
 ## Executive Summary
-RitaDrishti Multi-Agent System completed a comprehensive 360-degree assessment of **{company_name}**. The company has been assigned a verified **Trust Index** based on real-time sentiment signals, fake review detection metrics, and consumer dispute resolution audits.
+{summary}
 
 ---
 
@@ -161,7 +167,7 @@ class CrewManager:
         out4 = self.trust_agent.run(evidence.company_name, trust_score=evidence.trust_score)
 
         outputs = [out1, out2, out3, out4]
-        report_markdown = self.report_agent.generate_report(evidence.company_name, outputs)
+        report_markdown = self.report_agent.generate_report(evidence.company_name, outputs, evidence=evidence)
 
         return {
             "company_name": evidence.company_name,

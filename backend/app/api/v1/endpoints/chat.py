@@ -21,9 +21,10 @@ async def query_rag_chat(req: ChatQueryRequest):
         )
 
     try:
+        import asyncio
         from backend.app.rag.rag_engine import RAGEngine, RAGUnavailableError
         rag_engine = RAGEngine()
-        res = rag_engine.generate_rag_response(query=req.query, company_id=req.company_id)
+        res = await asyncio.to_thread(rag_engine.generate_rag_response, req.query, req.company_id)
         return {
             "query": req.query,
             "answer": res["answer"],

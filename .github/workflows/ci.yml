@@ -6,6 +6,10 @@ on:
   pull_request:
     branches: [ main, master ]
 
+env:
+  JWT_SECRET: ci-only-secret-key-2026-testing-0123456789
+  POSTGRES_PASSWORD: ci-only-password
+
 jobs:
   backend-test:
     runs-on: ubuntu-latest
@@ -15,7 +19,7 @@ jobs:
         image: postgres:16-alpine
         env:
           POSTGRES_USER: ritadrishti
-          POSTGRES_PASSWORD: ritadrishti_secret
+          POSTGRES_PASSWORD: ci-only-password
           POSTGRES_DB: ritadrishti_test_db
         ports:
           - 5432:5432
@@ -40,27 +44,30 @@ jobs:
           python -m pip install --upgrade pip
           pip install -r requirements.txt pytest-cov
 
-      - name: Execute Machine Learning Model Training & Checksum Verification
-        run: |
-          python backend/app/ml/train_fake_review_model.py
-
       - name: Run Alembic Migration on PostgreSQL
         env:
-          DATABASE_URL: "postgresql+asyncpg://ritadrishti:ritadrishti_secret@localhost:5432/ritadrishti_test_db"
+          DATABASE_URL: "postgresql+asyncpg://ritadrishti:ci-only-password@localhost:5432/ritadrishti_test_db"
         run: |
           alembic -c backend/alembic.ini upgrade head
 
       - name: Run Pytest Suite with PostgreSQL & Coverage Enforcement (>=85%)
         env:
-          DATABASE_URL: "postgresql+asyncpg://ritadrishti:ritadrishti_secret@localhost:5432/ritadrishti_test_db"
+          DATABASE_URL: "postgresql+asyncpg://ritadrishti:ci-only-password@localhost:5432/ritadrishti_test_db"
           APP_ENV: "testing"
-          JWT_SECRET: "ci_test_secret_key_1234567890_ritadrishti"
+          JWT_SECRET: "ci-only-secret-key-2026-testing-0123456789"
         run: |
           pytest backend/tests/ -v --cov=backend/app --cov-report=term-missing --cov-report=xml --cov-fail-under=85
 
-      - name: Validate Docker Compose Configuration
+      - name: Validate Docker Compose Configuration & Startup Health
         run: |
-          JWT_SECRET=ci-secret POSTGRES_PASSWORD=ci-password docker compose config --quiet
+          docker compose config --quiet
+          cp .env.example .env
+          docker compose up -d --build --wait
+          curl --fail --retry 10 --retry-delay 2 http://localhost:8000/readyz
+
+      - name: Clean up Docker Compose
+        if: always()
+        run: docker compose down -v
 
   frontend-build:
     runs-on: ubuntu-latest
@@ -84,7 +91,8 @@ jobs:
       - name: Audit Frontend Dependencies
         working-directory: frontend
         run: |
-          npm audit --omit=dev --audit-level=moderate || true
+          npm audit --omit=dev --audit-level=moderate
+          npm audit
 
       - name: Verify Next.js Production Build
         working-directory: frontend

@@ -10,7 +10,11 @@ import hashlib
 import joblib
 import numpy as np
 import pandas as pd
-from typing import Tuple, List
+from pathlib import Path
+from typing import Tuple, List, Optional, Union
+
+# ... imports ...
+
 
 from sklearn.model_selection import train_test_split
 from sklearn.feature_extraction.text import TfidfVectorizer
@@ -144,9 +148,12 @@ def train_and_evaluate_model() -> Tuple[Pipeline, dict]:
     return pipeline, metrics
 
 
-def export_artifact_and_model_card(model: Pipeline, metrics: dict):
+def export_artifact_and_model_card(model: Pipeline, metrics: dict, output_dir: Optional[Union[str, Path]] = None):
     """Exports model joblib artifact, SHA-256 checksum file, and MODEL_CARD.md."""
-    models_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), "models"))
+    if output_dir is not None:
+        models_dir = os.path.abspath(str(output_dir))
+    else:
+        models_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), "models"))
     os.makedirs(models_dir, exist_ok=True)
 
     model_path = os.path.join(models_dir, "fake_review_model.joblib")

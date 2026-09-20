@@ -120,8 +120,7 @@ class ChatQueryResponse(BaseModel):
     sources: List[str]
 
 class AuditReportRequest(BaseModel):
-    company_name: str
-    company_id: Optional[str] = None
+    company_id: UUID
 
 class AuditReportResponse(BaseModel):
     company_name: str

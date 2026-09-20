@@ -7,9 +7,10 @@ from fastapi import APIRouter, Depends, status
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from backend.app.core.database import get_db
-from backend.app.core.security import create_access_token, verify_password
+from backend.app.core.security import create_access_token, verify_password, get_current_user
 from backend.app.core.exceptions import AuthenticationError, EntityNotFoundError
 from backend.app.core.rate_limiter import auth_rate_limiter
+from backend.app.db.models import UserModel
 from backend.app.db.repositories import UserRepository
 from backend.app.db.schemas import UserRegisterRequest, UserLoginRequest, TokenResponse, UserResponse
 
@@ -81,3 +82,14 @@ async def login_user(
         "user_id": user.user_id,
         "username": user.username
     }
+
+
+@router.get("/me", response_model=UserResponse)
+async def get_current_authenticated_user(
+    current_user: UserModel = Depends(get_current_user)
+):
+    """
+    Validates Bearer token and returns profile details of the authenticated user.
+    Authenticated endpoint.
+    """
+    return current_user

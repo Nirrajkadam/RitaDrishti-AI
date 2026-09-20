@@ -4,6 +4,7 @@ Behavioral Unit Tests: Subsystem Feature Flags & Optional Subsystem Error Handli
 
 import pytest
 from httpx import AsyncClient
+from uuid import uuid4
 from backend.app.config import settings
 from backend.app.rag.rag_engine import RAGEngine, RAGUnavailableError
 from backend.app.agents.crew_manager import CrewManager, AuditEvidence, EvidenceUnavailableError
@@ -18,7 +19,7 @@ async def test_chat_disabled_flag_returns_503(client: AsyncClient):
 
 @pytest.mark.asyncio
 async def test_reports_disabled_flag_returns_503(client: AsyncClient, auth_headers: dict):
-    resp = await client.post("/api/v1/reports/generate", json={"company_name": "Acme Cloud"}, headers=auth_headers)
+    resp = await client.post("/api/v1/reports/generate", json={"company_id": str(uuid4())}, headers=auth_headers)
     assert resp.status_code == 503
     assert resp.json()["error"]["code"] == "CREWAI_DISABLED"
 

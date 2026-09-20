@@ -81,6 +81,29 @@ async def root():
     }
 
 
+@app.get("/healthz")
+async def liveness_check():
+    """Liveness probe returning HTTP 200 OK when application server is running."""
+    return {"status": "ok", "app": settings.APP_NAME}
+
+
+@app.get("/readyz")
+async def readiness_check(request: Request):
+    """Readiness probe checking database connectivity and returning HTTP 200 or 503."""
+    from backend.app.core.database import get_db
+    from sqlalchemy import text
+    try:
+        async for db in get_db():
+            await db.execute(text("SELECT 1"))
+            break
+        return {"status": "ready", "database": "connected"}
+    except Exception as e:
+        return JSONResponse(
+            status_code=503,
+            content={"status": "not_ready", "error": str(e)}
+        )
+
+
 if __name__ == "__main__":
     import uvicorn
     uvicorn.run("backend.app.main:app", host="0.0.0.0", port=8000, reload=True)
