@@ -64,6 +64,8 @@ def main() -> None:
 
     df = pd.read_csv(args.data).dropna(subset=["text", "label"])
     df["label"] = df["label"].astype(int)
+    # Deduplicate texts to prevent evaluation data leakage between train and validation splits
+    df = df.drop_duplicates(subset=["text"]).reset_index(drop=True)
     train_df, val_df = train_test_split(
         df, test_size=args.val_frac, stratify=df["label"], random_state=args.seed
     )

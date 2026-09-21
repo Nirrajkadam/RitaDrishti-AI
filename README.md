@@ -27,7 +27,7 @@ The system ingests customer review text, executes regex PII sanitization (maskin
 | **Relational Storage & Migration** | `SQLAlchemy` 2.0, `Alembic`, `asyncpg`, `aiosqlite` | Portable AsyncSession repositories with atomic multi-table transactions and versioned Alembic schema migrations. | **Verified Prototype Layer** |
 | **Frontend Applications** | `Next.js` 16 (App Router) & `Streamlit` | Modern web interface (Next.js) and interactive analytical dashboard (Streamlit). | **Verified Prototype Layer** |
 | **RAG & Multi-Agent Subsystems** | `Ollama` / `Qdrant` / `CrewAI` | Vector search, Llama 3 LLM copilot, and autonomous agent audit briefs (disabled by default via feature flags). | **Experimental (Flagged)** |
-| **NPU Hardware Acceleration** | ONNX Runtime QNN / DirectML | On-device ONNX neural model acceleration for Snapdragon NPUs via `QNNExecutionProvider` / DirectML with safe CPU fallback. | **Verified Prototype Layer** |
+| **NPU Hardware Acceleration** | ONNX Runtime QNN Execution Provider | On-device ONNX neural model acceleration for Snapdragon NPUs via `QNNExecutionProvider` / HTP backend. | **Experimental — QNN implementation available, hardware validation pending** |
 
 ---
 

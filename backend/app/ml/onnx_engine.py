@@ -66,15 +66,10 @@ def load_encoder(model_dir: str | Path, max_len: int = 128) -> Encoder:
     except Exception:
         pass
 
-    def simple_encode(text: str):
-        tokens = [ord(c) % 256 for c in text[:max_len]]
-        input_ids = np.zeros((1, max_len), dtype=np.int64)
-        input_ids[0, :len(tokens)] = tokens
-        attention_mask = np.zeros((1, max_len), dtype=np.int64)
-        attention_mask[0, :len(tokens)] = 1
-        return input_ids, attention_mask
-
-    return simple_encode
+    raise FileNotFoundError(
+        f"Tokenizer definition could not be loaded from {model_dir}. "
+        "Ensure tokenizer.json is present in the model directory or HuggingFace transformers is installed."
+    )
 
 
 def _softmax(logits: np.ndarray) -> np.ndarray:

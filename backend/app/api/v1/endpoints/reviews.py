@@ -9,10 +9,11 @@ from fastapi import APIRouter, Depends, status
 from sqlalchemy.ext.asyncio import AsyncSession
 from uuid import UUID
 
+from backend.app.config import settings
 from backend.app.core.database import get_db
 from backend.app.core.security import get_current_user
 from backend.app.core.sanitizer import sanitize_text
-from backend.app.core.exceptions import EntityNotFoundError, AuthenticationError
+from backend.app.core.exceptions import EntityNotFoundError, AuthenticationError, ServiceUnavailableError
 from backend.app.db.models import UserModel
 from backend.app.db.repositories import ReviewRepository, CompanyRepository
 from backend.app.db.schemas import ReviewCreate, ReviewWithAnalysisResponse, ReviewResponse, AIAnalysisResponse
@@ -43,12 +44,48 @@ async def analyze_and_persist_review(
     # 1. PII Sanitization (Redact emails, phone numbers, credit cards, SSNs)
     cleaned_text = sanitize_text(review_in.raw_text)
 
-    # 2. Model Inference
-    fake_audit = fake_engine.predict_fake_probability(
-        text=cleaned_text,
-        rating=review_in.rating,
-        is_verified=False
-    )
+    # 2. Model Inference (Scikit-Learn baseline or ONNX/QNN NPU hardware acceleration)
+    npu_metadata = {}
+    if settings.ENABLE_NPU:
+        from pathlib import Path
+        from backend.app.ml.onnx_engine import OnnxReviewEngine
+
+        onnx_dir = Path("backend/app/ml/artifacts/onnx")
+        if not onnx_dir.exists() or not (onnx_dir / "tokenizer.json").exists():
+            onnx_dir = Path("backend/app/ml")
+
+        try:
+            onnx_engine = OnnxReviewEngine(onnx_dir)
+            onnx_score = onnx_engine.score(cleaned_text)
+            fake_prob = float(onnx_score["fake_probability"])
+            is_suspicious = fake_prob >= 0.5
+            npu_metadata = {
+                "accelerator_mode": "npu",
+                "onnx_model": onnx_engine.info_dict.get("model", "unknown"),
+                "active_execution_provider": onnx_engine.info.active_providers[0] if onnx_engine.info.active_providers else "CPUExecutionProvider",
+                "npu_accelerated": onnx_engine.info.npu_active,
+                "accelerator_label": onnx_engine.info.label,
+            }
+            fake_audit = {
+                "fake_probability": fake_prob,
+                "is_suspicious": is_suspicious,
+                "model": f"ONNX-Transformer ({onnx_engine.info.label})",
+                "features": {
+                    "onnx_fake_prob": round(fake_prob, 4),
+                    **npu_metadata
+                }
+            }
+        except Exception as err:
+            raise ServiceUnavailableError(
+                code="NPU_ACCELERATOR_UNAVAILABLE",
+                message=f"NPU hardware acceleration is enabled (ENABLE_NPU=true), but ONNX execution failed: {err}"
+            )
+    else:
+        fake_audit = fake_engine.predict_fake_probability(
+            text=cleaned_text,
+            rating=review_in.rating,
+            is_verified=False
+        )
 
     # 3. Sentiment Analysis
     sentiment = sentiment_engine.analyze_sentiment(cleaned_text)

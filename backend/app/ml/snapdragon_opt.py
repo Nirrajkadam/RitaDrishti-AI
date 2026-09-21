@@ -26,6 +26,17 @@ class SnapdragonNPUAccelerator:
 
     def _initialize_session(self):
         """Creates an ONNX Runtime session or defaults to CPU provider."""
+        if not self.model_path:
+            for candidate in (
+                "backend/app/ml/artifacts/onnx/model.qdq.onnx",
+                "backend/app/ml/artifacts/onnx/model.fp32.onnx",
+                "backend/app/ml/model.qdq.onnx",
+                "backend/app/ml/model.fp32.onnx",
+            ):
+                if os.path.exists(candidate):
+                    self.model_path = candidate
+                    break
+
         if self.model_path and os.path.exists(self.model_path):
             try:
                 self.session, self.info = create_session(self.model_path, mode=self.mode)
@@ -43,8 +54,8 @@ class SnapdragonNPUAccelerator:
             self.info = AcceleratorInfo(
                 requested=self.mode,
                 active_providers=tuple(active_prov),
-                npu_active="QNNExecutionProvider" in active_prov or "DmlExecutionProvider" in active_prov,
-                label="Snapdragon NPU (QNN/HTP)" if ("QNNExecutionProvider" in active_prov or "DmlExecutionProvider" in active_prov) else "CPU",
+                npu_active=QNN_EP in active_prov,
+                label="Snapdragon NPU (QNN/HTP)" if QNN_EP in active_prov else "CPU",
                 note="Standard ONNX Runtime execution provider detection"
             )
 
@@ -69,19 +80,21 @@ class SnapdragonNPUAccelerator:
             result_output = outputs[0]
             active_providers = list(self.session.get_providers())
         else:
-            # Simple soft max logit matrix for unit testing execution when model artifact is un-exported
-            result_output = np.array([[0.1, 0.9]], dtype=np.float32)
-            active_providers = list(self.info.active_providers) if self.info else [CPU_EP]
+            raise RuntimeError(
+                "No active ONNX session loaded for Snapdragon NPU accelerator. "
+                "Ensure valid model.qdq.onnx or model.fp32.onnx exists in the model directory."
+            )
 
         elapsed_ms = (time.perf_counter() - start_time) * 1000.0
-        npu_active = any(p in ["QNNExecutionProvider", "DmlExecutionProvider"] for p in active_providers)
+        npu_active = QNN_EP in active_providers
 
         return {
             "execution_providers": active_providers,
             "active_provider": active_providers[0] if active_providers else CPU_EP,
             "latency_ms": round(elapsed_ms, 3),
             "npu_accelerated": npu_active,
-            "output_shape": list(result_output.shape)
+            "output_shape": list(result_output.shape),
+            "logits": result_output.tolist()
         }
 
     def benchmark_cpu_vs_npu(self, iterations: int = 50) -> Dict[str, Any]:

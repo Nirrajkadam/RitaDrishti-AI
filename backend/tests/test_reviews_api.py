@@ -80,3 +80,55 @@ async def test_get_non_existent_review(client: AsyncClient, auth_headers: dict):
     resp = await client.get(f"/api/v1/reviews/{fake_review_id}", headers=auth_headers)
     assert resp.status_code == 404
     assert resp.json()["error"]["code"] == "ENTITY_NOT_FOUND"
+
+
+@pytest.mark.asyncio
+async def test_onnx_npu_review_analysis_workflow(client: AsyncClient, auth_headers: dict, monkeypatch):
+    from backend.app.config import settings
+    monkeypatch.setattr(settings, "ENABLE_NPU", True)
+
+    company_payload = {
+        "name": "NPU MicroSystems",
+        "domain": "npumicro.com",
+        "industry": "Semiconductors",
+        "description": "Qualcomm Snapdragon NPU testing company.",
+        "country_code": "US"
+    }
+    comp_resp = await client.post("/api/v1/companies/", json=company_payload, headers=auth_headers)
+    assert comp_resp.status_code == 201
+    company_id = comp_resp.json()["company_id"]
+
+@pytest.mark.asyncio
+async def test_onnx_npu_review_analysis_error_handling(client: AsyncClient, auth_headers: dict, monkeypatch):
+    from backend.app.config import settings
+    monkeypatch.setattr(settings, "ENABLE_NPU", True)
+
+    company_payload = {
+        "name": "NPU Error test",
+        "domain": "npuerror.com",
+        "industry": "Testing",
+        "description": "NPU error handling test.",
+        "country_code": "US"
+    }
+    comp_resp = await client.post("/api/v1/companies/", json=company_payload, headers=auth_headers)
+    assert comp_resp.status_code == 201
+    company_id = comp_resp.json()["company_id"]
+
+    review_payload = {
+        "company_id": company_id,
+        "source": "ErrorTest",
+        "rating": 1.0,
+        "raw_text": "Testing NPU exception path when model dir is invalid."
+    }
+    
+    # Mock OnnxReviewEngine to raise an exception
+    def mock_init(*args, **kwargs):
+        raise RuntimeError("Simulated NPU session error")
+
+    monkeypatch.setattr("backend.app.ml.onnx_engine.OnnxReviewEngine.__init__", mock_init)
+
+    resp = await client.post("/api/v1/reviews/analyze", json=review_payload, headers=auth_headers)
+    assert resp.status_code == 503
+    assert resp.json()["error"]["code"] == "NPU_ACCELERATOR_UNAVAILABLE"
+
+

@@ -84,7 +84,16 @@ async def root():
 @app.get("/healthz")
 async def liveness_check():
     """Liveness probe returning HTTP 200 OK when application server is running."""
-    return {"status": "ok", "app": settings.APP_NAME}
+    res = {"status": "ok", "app": settings.APP_NAME}
+    if settings.ENABLE_NPU:
+        import os
+        from backend.app.ml.accelerator import qnn_available
+        res["npu"] = {
+            "enabled": True,
+            "qnn_available": qnn_available(),
+            "requested_mode": os.getenv("ACCELERATOR", "auto")
+        }
+    return res
 
 
 @app.get("/readyz")
@@ -96,7 +105,16 @@ async def readiness_check(request: Request):
         async for db in get_db():
             await db.execute(text("SELECT 1"))
             break
-        return {"status": "ready", "database": "connected"}
+        res = {"status": "ready", "database": "connected"}
+        if settings.ENABLE_NPU:
+            import os
+            from backend.app.ml.accelerator import qnn_available
+            res["npu"] = {
+                "enabled": True,
+                "qnn_available": qnn_available(),
+                "requested_mode": os.getenv("ACCELERATOR", "auto")
+            }
+        return res
     except Exception as e:
         return JSONResponse(
             status_code=503,

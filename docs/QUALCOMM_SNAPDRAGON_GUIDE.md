@@ -1,48 +1,58 @@
-# RitaDrishti-AI — Qualcomm Snapdragon AI Hub & NPU Optimization Blueprint (Experimental)
+# RitaDrishti-AI — Qualcomm Snapdragon NPU Architecture & QNN Integration Blueprint
 
 ## 1. Overview
-RitaDrishti-AI includes an experimental optimization blueprint for executing sentiment models locally on **Qualcomm Snapdragon X Elite and X Plus Copilot+ PCs** using DirectML / QNN.
+RitaDrishti-AI provides an **on-device ONNX / QNN execution engine** for local neural network inference on **Qualcomm Snapdragon X Elite / X Plus Copilot+ PCs** via `QNNExecutionProvider` (targeting the Qualcomm Hexagon Tensor Processor / HTP).
 
-*Note: In the core RitaDrishti-AI platform, NPU execution is feature-gated via `ENABLE_NPU=false` in `backend/app/config.py`.*
+**Status**: *Experimental — QNN implementation available, hardware validation pending until real Snapdragon results are committed.*
 
 ---
 
-## 2. Technical Optimization Steps
+## 2. Architecture & QNN Hardware Acceleration Flow
 
-### Step 1: Export PyTorch Models to ONNX Format
-Export DistilBERT sentiment models using PyTorch ONNX exporter:
+```text
+Input Review Text
+       │
+  `load_encoder` (Fast Tokenizer -> static int64 tensors: input_ids[1, 128], attention_mask[1, 128])
+       │
+  `create_session` (probes ONNX Runtime providers)
+       ├─> Primary: `QNNExecutionProvider` (Hexagon NPU / HTP, FP16 & QDQ INT8)
+       └─> Fallback: `CPUExecutionProvider` (Clean fallback read directly from session.get_providers())
+```
+
+---
+
+## 3. Static Shape Export for QNN HTP Backend
+
+Qualcomm Hexagon NPU works best with static tensor shapes:
 
 ```python
 import torch
-from transformers import DistilBertForSequenceClassification
+from transformers import AutoModelForSequenceClassification
 
-model = DistilBertForSequenceClassification.from_pretrained("distilbert-base-uncased")
-dummy_input = torch.randint(0, 1000, (1, 128)) # Batch size 1, sequence length 128
+model = AutoModelForSequenceClassification.from_pretrained("models/review_transformer")
+dummy_ids = torch.ones((1, 128), dtype=torch.int64)
+dummy_mask = torch.ones((1, 128), dtype=torch.int64)
 
 torch.onnx.export(
     model,
-    dummy_input,
-    "sentiment_model.onnx",
-    input_names=["input_ids"],
+    (dummy_ids, dummy_mask),
+    "model.fp32.onnx",
+    input_names=["input_ids", "attention_mask"],
     output_names=["logits"],
-    dynamic_axes={"input_ids": {0: "batch_size", 1: "sequence_length"}},
     opset_version=17
 )
 ```
 
-### Step 2: Configure ONNX Runtime for DirectML / Qualcomm QNN
-In Windows 11 Copilot+ PCs (ARM64), configure ONNX Runtime to target DirectML (`DmlExecutionProvider`) or Qualcomm Neural Processing SDK (`QNNExecutionProvider`):
+---
 
-```python
-import onnxruntime as ort
+## 4. Native Snapdragon PC Deployment
 
-options = ort.SessionOptions()
-options.graph_optimization_level = ort.GraphOptimizationLevel.ORT_ENABLE_ALL
+Run the native PowerShell scripts on a Windows ARM64 Snapdragon PC:
 
-# Target Qualcomm Hexagon NPU Execution Provider
-session = ort.InferenceSession(
-    "sentiment_model.onnx",
-    providers=["DmlExecutionProvider", "QNNExecutionProvider", "CPUExecutionProvider"],
-    sess_options=options
-)
+```powershell
+# 1. Environment & model bundle setup
+.\scripts\setup_snapdragon.ps1
+
+# 2. Launch FastAPI with NPU acceleration
+.\scripts\run_snapdragon.ps1
 ```

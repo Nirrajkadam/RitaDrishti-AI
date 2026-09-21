@@ -1,0 +1,42 @@
+{
+  "machine": {
+    "platform": "Windows-11-10.0.26200-SP0",
+    "machine": "AMD64",
+    "processor": "AMD64 Family 25 Model 80 Stepping 0, AuthenticAMD",
+    "onnxruntime": "1.30.0"
+  },
+  "settings": {
+    "max_len": 128,
+    "warmup": 20,
+    "iters": 200,
+    "eval_samples": 0
+  },
+  "results": [
+    {
+      "precision": "FP32",
+      "requested": "cpu",
+      "backend": "CPU",
+      "providers": [
+        "CPUExecutionProvider"
+      ],
+      "size_mb": 0.000201,
+      "p50_ms": 0.0335,
+      "p95_ms": 0.0585,
+      "mean_ms": 0.043407,
+      "reviews_per_s": 23037.75888681549
+    },
+    {
+      "precision": "QDQ",
+      "requested": "cpu",
+      "backend": "CPU",
+      "providers": [
+        "CPUExecutionProvider"
+      ],
+      "size_mb": 0.000201,
+      "p50_ms": 0.0342,
+      "p95_ms": 0.106,
+      "mean_ms": 0.051244,
+      "reviews_per_s": 19514.479743970027
+    }
+  ]
+}

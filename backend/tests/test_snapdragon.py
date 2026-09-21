@@ -74,10 +74,10 @@ def test_onnx_engine_helpers(tmp_path):
 
 
 def test_onnx_engine_full_flow(tmp_path):
+    import json
     import onnx
     from onnx import helper, TensorProto
 
-    # Construct minimal ONNX model returning constant logits [[0.2, 0.8]]
     input_ids = helper.make_tensor_value_info('input_ids', TensorProto.INT64, [1, 128])
     attention_mask = helper.make_tensor_value_info('attention_mask', TensorProto.INT64, [1, 128])
     logits = helper.make_tensor_value_info('logits', TensorProto.FLOAT, [1, 2])
@@ -97,9 +97,26 @@ def test_onnx_engine_full_flow(tmp_path):
         opset_imports=[helper.make_opsetid("", 17)]
     )
 
-    # Test model.fp32.onnx fallback
     fp32_path = tmp_path / "model.fp32.onnx"
     onnx.save(model, str(fp32_path))
+
+    tok_data = {
+        "version": "1.0",
+        "truncation": None,
+        "padding": None,
+        "normalizer": None,
+        "pre_tokenizer": None,
+        "post_processor": None,
+        "decoder": None,
+        "model": {
+            "type": "WordPiece",
+            "unk_token": "[UNK]",
+            "continuing_subword_prefix": "##",
+            "max_input_chars_per_word": 100,
+            "vocab": {"[PAD]": 0, "[UNK]": 1, "[CLS]": 2, "[SEP]": 3, "[MASK]": 4, "test": 5}
+        }
+    }
+    (tmp_path / "tokenizer.json").write_text(json.dumps(tok_data))
 
     from backend.app.ml.onnx_engine import OnnxReviewEngine, load_encoder
     enc = load_encoder(tmp_path, max_len=128)
@@ -107,7 +124,6 @@ def test_onnx_engine_full_flow(tmp_path):
     assert i_ids.shape == (1, 128)
     assert a_mask.shape == (1, 128)
 
-    # Test engine with cache_dir and predict_proba with multiple texts
     cache = tmp_path / "cache"
     engine = OnnxReviewEngine(tmp_path, mode="cpu", cache_dir=cache)
     score_res = engine.score("Great test review")
@@ -120,7 +136,6 @@ def test_onnx_engine_full_flow(tmp_path):
     probs = engine.predict_proba(["Review 1", "Review 2"])
     assert len(probs) == 2
 
-    # Test SnapdragonNPUAccelerator with model_path
     accelerator = SnapdragonNPUAccelerator(onnx_model_path=str(fp32_path), mode="cpu")
     run_res = accelerator.run_npu_inference(i_ids, a_mask)
     assert run_res["active_provider"] == CPU_EP
@@ -129,9 +144,25 @@ def test_onnx_engine_full_flow(tmp_path):
 
 
 def test_tokenizer_json_load_encoder(tmp_path):
-    # Test tokenizer.json parsing branch in load_encoder
+    import json
     tok_json = tmp_path / "tokenizer.json"
-    tok_json.write_text('{"version": "1.0", "truncation": null, "padding": null, "model": {"type": "WordPiece", "vocab": {"[PAD]": 0, "test": 1}}}')
+    tok_data = {
+        "version": "1.0",
+        "truncation": None,
+        "padding": None,
+        "normalizer": None,
+        "pre_tokenizer": None,
+        "post_processor": None,
+        "decoder": None,
+        "model": {
+            "type": "WordPiece",
+            "unk_token": "[UNK]",
+            "continuing_subword_prefix": "##",
+            "max_input_chars_per_word": 100,
+            "vocab": {"[PAD]": 0, "[UNK]": 1, "[CLS]": 2, "[SEP]": 3, "[MASK]": 4, "test": 5}
+        }
+    }
+    tok_json.write_text(json.dumps(tok_data))
     
     from backend.app.ml.onnx_engine import load_encoder
     enc = load_encoder(tmp_path, max_len=128)
@@ -168,12 +199,11 @@ def test_accelerator_cache_dir_and_fp16(tmp_path):
 
 
 def test_snapdragon_accelerator_invalid_file(tmp_path):
-    # SnapdragonNPUAccelerator with non-existent model path handles exception gracefully
     non_existent = tmp_path / "non_existent.onnx"
     acc = SnapdragonNPUAccelerator(onnx_model_path=str(non_existent), mode="cpu")
     assert acc.session is None
-    res = acc.run_npu_inference(None)
-    assert "active_provider" in res
+    with pytest.raises(RuntimeError):
+        acc.run_npu_inference(None)
 
 
 def test_extra_agent_and_ml_coverage():
@@ -181,6 +211,47 @@ def test_extra_agent_and_ml_coverage():
     se = SentimentEngine()
     res = se.analyze_sentiment("This is a fantastic product!")
     assert "label" in res
+
+
+@pytest.mark.asyncio
+async def test_healthz_and_readyz_npu_probes(monkeypatch):
+    from httpx import AsyncClient, ASGITransport
+    from backend.app.main import app
+    from backend.app.config import settings
+
+    monkeypatch.setattr(settings, "ENABLE_NPU", True)
+
+    async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as ac:
+        h_res = await ac.get("/healthz")
+        assert h_res.status_code == 200
+        assert "npu" in h_res.json()
+
+        r_res = await ac.get("/readyz")
+        assert r_res.status_code in (200, 503)
+        assert "npu" in r_res.json()
+
+
+def test_accelerator_corrupt_file_fallback(tmp_path):
+    from backend.app.ml.accelerator import create_session
+    corrupt_file = tmp_path / "corrupt.onnx"
+    corrupt_file.write_bytes(b"not an onnx file")
+    
+    with pytest.raises(Exception):
+        create_session(corrupt_file, mode="npu")
+
+
+def test_validate_production_secrets_pass():
+    from backend.app.config import validate_production_secrets
+    validate_production_secrets()
+
+
+def test_accelerator_qnn_backend_helper():
+    from backend.app.ml.accelerator import _qnn_backend
+    backend_lib = _qnn_backend()
+    assert "QnnHtp" in backend_lib
+
+
+
 
 
 
