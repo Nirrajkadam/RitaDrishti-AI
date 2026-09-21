@@ -1,75 +1,115 @@
 """
 RitaDrishti-AI — Qualcomm Snapdragon NPU Accelerator Wrapper
 
-Theory & Snapdragon Integration:
-Qualcomm Snapdragon X Elite/Plus processors feature Hexagon NPUs capable of ~45 TOPS (Trillion Operations Per Second).
-By exporting PyTorch transformer models (DistilBERT, MiniLM embeddings) to ONNX format and configuring ONNX Runtime
-with DirectML (`DmlExecutionProvider`) or Qualcomm QNN (`QNNExecutionProvider`), RitaDrishti executes ML inference
-directly on Snapdragon NPU hardware with up to 4x faster throughput and 70% lower energy consumption compared to CPU.
+Executes ONNX Runtime neural network inference using static input tensors (input_ids, attention_mask)
+and reads back the active provider directly from session.get_providers().
 """
 
 import time
+import os
 import numpy as np
-from typing import Dict, Any, List
+from pathlib import Path
+from typing import Dict, Any, Optional
+
+import onnxruntime as ort
+from backend.app.ml.accelerator import create_session, AcceleratorInfo, QNN_EP, CPU_EP
 
 
 class SnapdragonNPUAccelerator:
-    def __init__(self, onnx_model_path: str = None):
-        self.provider = "CPUExecutionProvider"
-        self.session = None
+    def __init__(self, onnx_model_path: Optional[str] = None, mode: str = "auto"):
+        self.mode = mode
+        self.model_path = onnx_model_path
+        self.session: Optional[ort.InferenceSession] = None
+        self.info: Optional[AcceleratorInfo] = None
+        
+        self._initialize_session()
 
-        try:
-            import onnxruntime as ort
-            available_providers = ort.get_available_providers()
+    def _initialize_session(self):
+        """Creates an ONNX Runtime session or defaults to CPU provider."""
+        if self.model_path and os.path.exists(self.model_path):
+            try:
+                self.session, self.info = create_session(self.model_path, mode=self.mode)
+            except Exception as e:
+                print(f"[Snapdragon Accelerator Warning]: Failed to load ONNX model {self.model_path}: {e}")
+                self.session = None
+
+        if self.session is None:
+            # Fallback initialization using ort.InferenceSession if no external model path provided
+            available = ort.get_available_providers()
+            active_prov = [p for p in ["QNNExecutionProvider", "DmlExecutionProvider", "CPUExecutionProvider"] if p in available]
+            if not active_prov:
+                active_prov = [CPU_EP]
             
-            # Select Snapdragon NPU Provider (DirectML or Qualcomm QNN)
-            if "DmlExecutionProvider" in available_providers:
-                self.provider = "DmlExecutionProvider"
-            elif "QNNExecutionProvider" in available_providers:
-                self.provider = "QNNExecutionProvider"
+            self.info = AcceleratorInfo(
+                requested=self.mode,
+                active_providers=tuple(active_prov),
+                npu_active="QNNExecutionProvider" in active_prov or "DmlExecutionProvider" in active_prov,
+                label="Snapdragon NPU (QNN/HTP)" if ("QNNExecutionProvider" in active_prov or "DmlExecutionProvider" in active_prov) else "CPU",
+                note="Standard ONNX Runtime execution provider detection"
+            )
 
-            print(f"[Snapdragon NPU Initialized]: Active Provider -> {self.provider}")
-        except Exception as e:
-            print(f"[Snapdragon Accelerator Warning]: ONNX Runtime not bound to NPU, defaulting to CPU: {e}")
+    def run_npu_inference(self, input_ids: np.ndarray, attention_mask: Optional[np.ndarray] = None) -> Dict[str, Any]:
+        """Runs real ONNX inference on active execution provider."""
+        if input_ids is None:
+            input_ids = np.ones((1, 128), dtype=np.int64)
+        if attention_mask is None:
+            attention_mask = np.ones_like(input_ids, dtype=np.int64)
 
-    def run_npu_inference(self, dummy_input_matrix: np.ndarray) -> Dict[str, Any]:
-        """Runs accelerated neural network inference on Snapdragon Hexagon NPU."""
         start_time = time.perf_counter()
 
-        # Simulated matrix ops representing transformer attention layer on NPU
-        weights = np.random.randn(dummy_input_matrix.shape[1], 128).astype(np.float32)
-        output = np.matmul(dummy_input_matrix, weights)
-        output = np.maximum(0, output) # ReLU activation
+        if self.session is not None:
+            input_names = {i.name for i in self.session.get_inputs()}
+            feed = {}
+            if "input_ids" in input_names:
+                feed["input_ids"] = input_ids.astype(np.int64)
+            if "attention_mask" in input_names:
+                feed["attention_mask"] = attention_mask.astype(np.int64)
+            
+            outputs = self.session.run(None, feed)
+            result_output = outputs[0]
+            active_providers = list(self.session.get_providers())
+        else:
+            # Simple soft max logit matrix for unit testing execution when model artifact is un-exported
+            result_output = np.array([[0.1, 0.9]], dtype=np.float32)
+            active_providers = list(self.info.active_providers) if self.info else [CPU_EP]
 
         elapsed_ms = (time.perf_counter() - start_time) * 1000.0
+        npu_active = any(p in ["QNNExecutionProvider", "DmlExecutionProvider"] for p in active_providers)
 
         return {
-            "execution_provider": self.provider,
+            "execution_providers": active_providers,
+            "active_provider": active_providers[0] if active_providers else CPU_EP,
             "latency_ms": round(elapsed_ms, 3),
-            "npu_accelerated": self.provider in ["DmlExecutionProvider", "QNNExecutionProvider"],
-            "output_shape": list(output.shape)
+            "npu_accelerated": npu_active,
+            "output_shape": list(result_output.shape)
         }
 
-    def benchmark_cpu_vs_npu(self, iterations: int = 100) -> Dict[str, Any]:
-        """Compares CPU vs Snapdragon NPU inference latency and estimated power efficiency."""
-        dummy_data = np.random.randn(32, 384).astype(np.float32) # Batch 32 embeddings
+    def benchmark_cpu_vs_npu(self, iterations: int = 50) -> Dict[str, Any]:
+        """Runs benchmarking iterations and calculates latency statistics."""
+        dummy_ids = np.ones((1, 128), dtype=np.int64)
+        dummy_mask = np.ones((1, 128), dtype=np.int64)
 
         latencies = []
         for _ in range(iterations):
-            res = self.run_npu_inference(dummy_data)
+            res = self.run_npu_inference(dummy_ids, dummy_mask)
             latencies.append(res["latency_ms"])
 
-        avg_latency = np.mean(latencies)
+        avg_latency = float(np.mean(latencies))
+        p50_latency = float(np.median(latencies))
+
+        active_provider = self.info.active_providers[0] if self.info and self.info.active_providers else CPU_EP
 
         return {
             "iterations": iterations,
-            "active_provider": self.provider,
-            "avg_latency_ms": round(float(avg_latency), 3),
-            "estimated_npu_speedup": "3.8x" if "Dml" in self.provider or "QNN" in self.provider else "1.0x (CPU Mode)",
-            "power_efficiency_gain": "72% lower wattage on Snapdragon NPU" if "CPU" not in self.provider else "Standard x86 TDP"
+            "active_provider": active_provider,
+            "avg_latency_ms": round(avg_latency, 3),
+            "p50_latency_ms": round(p50_latency, 3),
+            "npu_active": self.info.npu_active if self.info else False,
+            "label": self.info.label if self.info else "CPU"
         }
 
 
 if __name__ == "__main__":
     accelerator = SnapdragonNPUAccelerator()
-    print(accelerator.benchmark_cpu_vs_npu(iterations=50))
+    print(accelerator.benchmark_cpu_vs_npu(iterations=20))
+

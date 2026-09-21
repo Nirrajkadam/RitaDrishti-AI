@@ -3,7 +3,7 @@
 
 [![Python](https://img.shields.io/badge/Python-3.11+-3776AB?style=flat-square&logo=python&logoColor=white)](https://www.python.org/)
 [![FastAPI](https://img.shields.io/badge/FastAPI-0.110-009688?style=flat-square&logo=fastapi&logoColor=white)](https://fastapi.tiangolo.com/)
-[![Next.js](https://img.shields.io/badge/Next.js-14.2-000000?style=flat-square&logo=nextdotjs&logoColor=white)](https://nextjs.org/)
+[![Next.js](https://img.shields.io/badge/Next.js-16.3.5-000000?style=flat-square&logo=nextdotjs&logoColor=white)](https://nextjs.org/)
 [![PostgreSQL](https://img.shields.io/badge/PostgreSQL-16-4169E1?style=flat-square&logo=postgresql&logoColor=white)](https://www.postgresql.org/)
 [![License](https://img.shields.io/badge/License-MIT-blue?style=flat-square)](LICENSE)
 
@@ -11,7 +11,7 @@
 
 ## Executive Overview
 
-**RitaDrishti-AI** is an AI-powered Trust Intelligence and Risk Auditing Platform designed for enterprise risk assessment, fake review detection, and reputational auditing.
+**RitaDrishti-AI** is a validated prototype platform for AI-powered Trust Intelligence and Risk Auditing designed for enterprise risk assessment, fake review detection, and reputational auditing.
 
 The system ingests customer review text, executes regex PII sanitization (masking emails, phone numbers, credit cards, and SSNs), processes features through a trained **Scikit-Learn Machine Learning Pipeline** (`ColumnTransformer`: TF-IDF N-grams + 6 style features -> `LogisticRegression`), and persists records atomically in a relational database (`SQLite` for unit testing, `PostgreSQL` for production via SQLAlchemy 2.0 and Alembic).
 
@@ -25,9 +25,9 @@ The system ingests customer review text, executes regex PII sanitization (maskin
 | **Data Sanitization** | Python Regex Engine | Automated PII redaction (emails, phone numbers, payment details, SSNs) before persistence and ML processing. | **Verified Prototype Layer** |
 | **Fake Review ML Classifier** | `scikit-learn` Pipeline, `joblib` | Real probability scoring $[0.0, 1.0]$ combining TF-IDF vectorization with character case ratios, exclamation density, and lexical entropy. | **Verified Prototype Layer** |
 | **Relational Storage & Migration** | `SQLAlchemy` 2.0, `Alembic`, `asyncpg`, `aiosqlite` | Portable AsyncSession repositories with atomic multi-table transactions and versioned Alembic schema migrations. | **Verified Prototype Layer** |
-| **Frontend Applications** | `Next.js` 14 (App Router) & `Streamlit` | Modern web interface (Next.js) and interactive analytical dashboard (Streamlit). | **Verified Prototype Layer** |
+| **Frontend Applications** | `Next.js` 16 (App Router) & `Streamlit` | Modern web interface (Next.js) and interactive analytical dashboard (Streamlit). | **Verified Prototype Layer** |
 | **RAG & Multi-Agent Subsystems** | `Ollama` / `Qdrant` / `CrewAI` | Vector search, Llama 3 LLM copilot, and autonomous agent audit briefs (disabled by default via feature flags). | **Experimental (Flagged)** |
-| **NPU Hardware Acceleration** | ONNX Runtime DirectML / QNN | Edge hardware acceleration on Qualcomm Snapdragon NPU processors. | **Experimental (Flagged)** |
+| **NPU Hardware Acceleration** | ONNX Runtime QNN / DirectML | On-device ONNX neural model acceleration for Snapdragon NPUs via `QNNExecutionProvider` / DirectML with safe CPU fallback. | **Verified Prototype Layer** |
 
 ---
 

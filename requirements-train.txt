@@ -1,0 +1,9 @@
+# Fine-tune + export + quantize deps: run on an x64 machine with a GPU, or Colab.
+# Only the resulting model folder (model.qdq.onnx, model.fp32.onnx, tokenizer.json) is copied to the Snapdragon PC.
+torch
+transformers
+onnx
+onnxruntime
+numpy
+pandas
+scikit-learn

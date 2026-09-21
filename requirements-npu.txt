@@ -1,0 +1,7 @@
+# Inference + benchmark deps: install on the Snapdragon (Windows on Arm) PC with NATIVE ARM64 Python.
+# Once everything works, pin the exact versions (pip freeze) so judges get the same result.
+onnxruntime-qnn ; sys_platform == "win32" and platform_machine == "ARM64"
+onnxruntime ; not (sys_platform == "win32" and platform_machine == "ARM64")
+numpy
+tokenizers        # Rust wheel; if no ARM64 wheel is available, `pip install transformers` (engine falls back)
+scikit-learn      # benchmark accuracy/F1 only
