@@ -15,8 +15,9 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="en" className="font-sans">
-      <body className="h-screen overflow-hidden bg-void">
+    <html lang="en" className="font-sans" suppressHydrationWarning>
+      <body className="h-screen overflow-hidden bg-void" suppressHydrationWarning>
+
         <div className="flex h-full">
           <Sidebar />
           <div className="flex flex-1 flex-col min-w-0">
